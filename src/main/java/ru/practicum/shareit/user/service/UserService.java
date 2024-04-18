@@ -1,14 +1,17 @@
 package ru.practicum.shareit.user.service;
 
 import lombok.RequiredArgsConstructor;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exceptions.exceptions.EmailAlreadyExistsException;
 import ru.practicum.shareit.exceptions.exceptions.InvalidEmailException;
+import ru.practicum.shareit.exceptions.exceptions.UserNotFoundException;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserMapper;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.repository.UserRepository;
 
+import javax.persistence.PersistenceException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,18 +22,26 @@ public class UserService {
     private final UserRepository userRepository;
 
     public UserDto add(UserDto user) {
-        validate(user, null);
-        return UserMapper.toUserDto(userRepository.add(UserMapper.fromUserDto(user)));
+        try {
+            if (user.getEmail().isEmpty() || !user.getEmail().contains("@")) {
+                throw new InvalidEmailException("Некорректный email");
+            }
+            return UserMapper.toUserDto(userRepository.save(UserMapper.fromUserDto(user)));
+
+        }catch (NullPointerException e){
+            throw new InvalidEmailException("Некорректный email");
+        }
     }
 
     public UserDto getById(Long id) {
-        return UserMapper.toUserDto(userRepository.getById(id));
+        return UserMapper.toUserDto(userRepository.findById(id)
+                .orElseThrow(() -> {throw new UserNotFoundException("Пользователь с id " + id + " не найден");}));
     }
 
     public UserDto update(Long id, UserDto patch)  {
-        User existsUser = userRepository.getById(id);
+        User existsUser = userRepository.findById(id).get();
         customApplyPatchToUser(patch, existsUser);
-        return UserMapper.toUserDto(userRepository.update(id, existsUser));
+        return UserMapper.toUserDto(userRepository.save(existsUser));
     }
 
     public void deleteById(Long id) {
@@ -38,7 +49,7 @@ public class UserService {
     }
 
     public List<UserDto> getAll() {
-        return userRepository.getAll().stream().map(UserMapper::toUserDto).collect(Collectors.toList());
+        return userRepository.findAll().stream().map(UserMapper::toUserDto).collect(Collectors.toList());
     }
 
     private void customApplyPatchToUser(UserDto patch, User targetUser) {
@@ -60,7 +71,7 @@ public class UserService {
             throw new InvalidEmailException("email должен соответствовать формату example@example.com");
         }
 
-        for (User existsUser : userRepository.getAll()) {
+        for (User existsUser : userRepository.findAll()) {
 
             if (existsUser.getId().equals(id)) {
                 continue;

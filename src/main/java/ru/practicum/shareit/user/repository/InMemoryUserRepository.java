@@ -1,14 +1,13 @@
 package ru.practicum.shareit.user.repository;
 
-import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.exceptions.exceptions.UserNotFoundException;
 import ru.practicum.shareit.user.User;
 
 
 import java.util.*;
 
-@Repository
-public class InMemoryUserRepository implements UserRepository {
+//@Repository
+public class InMemoryUserRepository {
     Map<Long, User> users = new HashMap<>();
 
     private long generatorId = 1;
@@ -17,14 +16,14 @@ public class InMemoryUserRepository implements UserRepository {
         return generatorId++;
     }
 
-    @Override
+
     public User add(User user) {
         user.setId(generateId());
         users.put(user.getId(), user);
         return user;
     }
 
-    @Override
+
     public User getById(Long id) {
         User user = users.get(id);
         if (user == null) {
@@ -33,18 +32,18 @@ public class InMemoryUserRepository implements UserRepository {
         return user;
     }
 
-    @Override
+
     public User update(Long id, User user) {
         users.put(id, user);
         return getById(id);
     }
 
-    @Override
+
     public void deleteById(Long id) {
         users.remove(id);
     }
 
-    @Override
+
     public List<User> getAll() {
         return new ArrayList<>(users.values());
     }

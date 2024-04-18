@@ -1,4 +1,4 @@
-package ru.practicum.shareit.item;
+package ru.practicum.shareit.item.mapper;
 
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
@@ -11,8 +11,10 @@ public class ItemMapper {
                 item.getName(),
                 item.getDescription(),
                 item.getAvailable(),
-                item.getOwner(),
-                item.getRequest()
+                item.getUserId(),
+                item.getRequest(),
+                null,
+                null
         );
     }
 
