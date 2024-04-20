@@ -10,7 +10,7 @@ import javax.validation.constraints.Email;
  */
 
 @Entity
-@Table(name="users", schema = "public")
+@Table(name = "users", schema = "public")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -25,6 +25,6 @@ public class User {
 
     @NonNull
     @Email
-    @Column(name = "email", unique=true, nullable = false)
+    @Column(name = "email", unique = true, nullable = false)
     private String email;
 }

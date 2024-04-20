@@ -1,7 +1,6 @@
 package ru.practicum.shareit.user.service;
 
 import lombok.RequiredArgsConstructor;
-import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exceptions.exceptions.EmailAlreadyExistsException;
 import ru.practicum.shareit.exceptions.exceptions.InvalidEmailException;
@@ -11,7 +10,6 @@ import ru.practicum.shareit.user.UserMapper;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.repository.UserRepository;
 
-import javax.persistence.PersistenceException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,14 +26,15 @@ public class UserService {
             }
             return UserMapper.toUserDto(userRepository.save(UserMapper.fromUserDto(user)));
 
-        }catch (NullPointerException e){
+        } catch (NullPointerException e) {
             throw new InvalidEmailException("Некорректный email");
         }
     }
 
     public UserDto getById(Long id) {
         return UserMapper.toUserDto(userRepository.findById(id)
-                .orElseThrow(() -> {throw new UserNotFoundException("Пользователь с id " + id + " не найден");}));
+                .orElseThrow(() -> {
+                    throw new UserNotFoundException("Пользователь с id " + id + " не найден"); }));
     }
 
     public UserDto update(Long id, UserDto patch)  {

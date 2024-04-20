@@ -1,25 +1,16 @@
 package ru.practicum.shareit.booking;
 
 
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.yaml.snakeyaml.util.EnumUtils;
 import ru.practicum.shareit.booking.dto.BookingCreationDto;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.exceptions.exceptions.*;
-import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.repository.UserRepository;
 
-import java.awt.print.Book;
-import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.chrono.ChronoLocalDate;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,21 +25,24 @@ public class BookingService {
     public BookingDto add(BookingCreationDto creationDto, Long sharerId) {
         Booking booking = BookingMapper.fromBookingCreationDto(creationDto);
         booking.setBooker(userRepository.findById(sharerId).orElseThrow(()
-                -> {throw new UserNotFoundException("Пользователь с id " + creationDto.getUserId() + " не найден");}));
+                -> {
+            throw new UserNotFoundException("Пользователь с id " + creationDto.getUserId() + " не найден"); }));
         booking.setItem(itemRepository.findById(creationDto.getItemId()).orElseThrow(()
-                -> {throw new ItemNotFoundException("Предмет с id " + creationDto.getItemId() + " не найден");}));
+                -> {
+            throw new ItemNotFoundException("Предмет с id " + creationDto.getItemId() + " не найден"); }));
         validate(booking, sharerId);
         return BookingMapper.toBookingDto(bookingRepository.save(booking));
     }
 
     public BookingDto update(Long bookingId, Long sharerId, String approvedStatus) {
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(()
-                -> {throw new BookingNotFoundException("Бронь с id " + bookingId + " не найдена");});
+                -> {
+            throw new BookingNotFoundException("Бронь с id " + bookingId + " не найдена"); });
         if (!sharerId.equals(booking.getItem().getUserId())) {
-            throw new NoRightsException("У пользователя с id "+ sharerId +" нет прав для подтверждения бронирования");
+            throw new NoRightsException("У пользователя с id " + sharerId + " нет прав для подтверждения бронирования");
         }
         if (Boolean.parseBoolean(approvedStatus)) {
-            if (booking.getStatus().equals(BookingStatus.APPROVED.name())){
+            if (booking.getStatus().equals(BookingStatus.APPROVED.name())) {
                 throw new IncorrectActionException("Бронирование уже подтверждено");
             }
             booking.setStatus(BookingStatus.APPROVED.name());
@@ -61,9 +55,11 @@ public class BookingService {
 
     public BookingDto getById(Long bookingId, Long sharerId) {
         userRepository.findById(sharerId).orElseThrow(()
-                -> {throw new UserNotFoundException("Пользователь с id " + sharerId + " не найден");});
+                -> {
+            throw new UserNotFoundException("Пользователь с id " + sharerId + " не найден"); });
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(()
-                -> {throw new BookingNotFoundException("Бронь с id " + bookingId + " не найдена");});
+                -> {
+            throw new BookingNotFoundException("Бронь с id " + bookingId + " не найдена"); });
         if (!booking.getItem().getUserId().equals(sharerId) && !booking.getBooker().getId().equals(sharerId)) {
             throw new BookingNotFoundException("У пользователя нет активных бронирований");
         }
@@ -72,7 +68,8 @@ public class BookingService {
 
     public List<BookingDto> getAllByState(Long sharerId, String state) {
         userRepository.findById(sharerId).orElseThrow(()
-                -> {throw new UserNotFoundException("Пользователь с id " + sharerId + " не найден");});
+                -> {
+            throw new UserNotFoundException("Пользователь с id " + sharerId + " не найден"); });
 
         if (Arrays.stream(BookingState.values()).noneMatch(existsState -> existsState.name().equals(state))) {
             throw new UnsupportedStatusException("Unknown state: " + state.toUpperCase());
@@ -106,7 +103,8 @@ public class BookingService {
 
         }
         userRepository.findById(sharerId).orElseThrow(()
-                -> {throw new UserNotFoundException("Пользователь с id " + sharerId + " не найден");});
+                -> {
+            throw new UserNotFoundException("Пользователь с id " + sharerId + " не найден"); });
         if (state.toUpperCase().equals(BookingState.ALL.name())) {
             return bookingRepository.findAllByOwner(sharerId).stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
         }
@@ -141,8 +139,7 @@ public class BookingService {
 
         if (booking.getStart().equals(booking.getEnd()) || booking.getEnd().isBefore(booking.getStart())
                 || booking.getStart().isAfter(booking.getEnd()) || booking.getEnd().isBefore(LocalDateTime.now())
-                || booking.getStart().isBefore(LocalDateTime.now()))
-        {
+                || booking.getStart().isBefore(LocalDateTime.now())) {
             throw new IncorrectBookingTimeException("Некорректно указано время бронирования");
         }
 

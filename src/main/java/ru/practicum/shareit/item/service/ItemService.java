@@ -41,8 +41,9 @@ public class ItemService {
     }
 
     public ItemDto update(ItemDto patch, Long itemId, String sharerId) {
-        Item existsItem = itemRepository.findById(itemId).
-                orElseThrow(() -> {throw new ItemNotFoundException("Сущность с id " + itemId + " не найден");});
+        Item existsItem = itemRepository.findById(itemId)
+                        .orElseThrow(() -> {
+                            throw new ItemNotFoundException("Сущность с id " + itemId + " не найден"); });
         if (existsItem.getUserId() != Long.parseLong(sharerId)) {
             throw new NoRightsException("У пользователя с id=" + sharerId + " нет прав для редактирования этого товара");
         }
@@ -52,7 +53,8 @@ public class ItemService {
 
     public ItemDto getById(Long itemId, Long sharerId) {
         ItemDto itemDto = ItemMapper.toItemDto(itemRepository.findById(itemId)
-                .orElseThrow(() -> {throw new ItemNotFoundException("Сущность с id " + itemId + " не найден");}));
+                .orElseThrow(() -> {
+                    throw new ItemNotFoundException("Сущность с id " + itemId + " не найден"); }));
         if (itemDto.getOwner().equals(sharerId)) {
             setBookingsForItem(itemDto);
         }
@@ -78,13 +80,15 @@ public class ItemService {
                 .stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
     }
 
-    public CommentDto addComment(CommentCreationDto creationDto, Long sharerId, Long itemId){
+    public CommentDto addComment(CommentCreationDto creationDto, Long sharerId, Long itemId) {
         Comment comment = new Comment(null, creationDto.getText(),
-                itemRepository.findById(itemId).
-                        orElseThrow(()
-                                -> {throw new ItemNotFoundException("Сущность с id " + itemId + " не найдена");}),
+                itemRepository.findById(itemId)
+                                .orElseThrow(()
+                                -> {
+                                    throw new ItemNotFoundException("Сущность с id " + itemId + " не найдена"); }),
                 userRepository.findById(sharerId).orElseThrow(()
-                        -> {throw new UserNotFoundException("Пользователь с id " + itemId + " не найден");}),
+                        -> {
+                    throw new UserNotFoundException("Пользователь с id " + itemId + " не найден"); }),
                 LocalDateTime.now());
         validateComment(comment);
         return CommentMapper.toCommentDto(commentRepository.save(comment));
@@ -128,7 +132,7 @@ public class ItemService {
         Optional<Booking> optLastBooking = bookingRepository
                 .findLastBookingForItem(LocalDateTime.now(), itemDto.getId()).stream()
                 .findFirst();
-        if (optLastBooking.isPresent()){
+        if (optLastBooking.isPresent()) {
             itemDto.setLastBooking(BookingMapper.toBookingItemDto(optLastBooking.get()));
         } else {
             itemDto.setLastBooking(null);
@@ -138,7 +142,7 @@ public class ItemService {
                 .findNextBookingForItem(LocalDateTime.now(), itemDto.getId()).stream()
                 .filter(booking -> !booking.getStatus().equals(BookingStatus.REJECTED.name()))
                 .findFirst();
-        if (optNextBooking.isPresent()){
+        if (optNextBooking.isPresent()) {
             itemDto.setNextBooking(BookingMapper.toBookingItemDto(optNextBooking.get()));
         } else {
             itemDto.setNextBooking(null);
