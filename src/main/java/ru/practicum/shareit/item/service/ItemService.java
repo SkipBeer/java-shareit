@@ -6,10 +6,7 @@ import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingMapper;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.BookingStatus;
-import ru.practicum.shareit.exceptions.exceptions.ItemNotFoundException;
-import ru.practicum.shareit.exceptions.exceptions.MissingRequiredFieldsException;
-import ru.practicum.shareit.exceptions.exceptions.NoRightsException;
-import ru.practicum.shareit.exceptions.exceptions.UserNotFoundException;
+import ru.practicum.shareit.exceptions.exceptions.*;
 import ru.practicum.shareit.item.mapper.CommentMapper;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.dto.CommentCreationDto;
@@ -22,12 +19,9 @@ import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
+
 
 @Service
 @RequiredArgsConstructor
@@ -62,6 +56,8 @@ public class ItemService {
         if (itemDto.getOwner().equals(sharerId)) {
             setBookingsForItem(itemDto);
         }
+        itemDto.setComments(commentRepository.getAllCommentsForItem(itemId).stream()
+                .map(CommentMapper::toCommentDto).collect(Collectors.toList()));
         return itemDto;
     }
 
@@ -90,7 +86,7 @@ public class ItemService {
                 userRepository.findById(sharerId).orElseThrow(()
                         -> {throw new UserNotFoundException("Пользователь с id " + itemId + " не найден");}),
                 LocalDateTime.now());
-
+        validateComment(comment);
         return CommentMapper.toCommentDto(commentRepository.save(comment));
     }
 
@@ -108,13 +104,10 @@ public class ItemService {
         if (comment.getText().isEmpty()) {
             throw new MissingRequiredFieldsException("Комментарий не может быть пустым");
         }
-        List<Booking> bookings = bookingRepository.findAllBookingsForItem(comment.getItem().getId()).stream()
-                .filter(booking -> booking.getBooker().getId().equals(comment.getAuthor().getId()))
-                .filter(booking -> booking.getItem().getId().equals(comment.getItem().getId())).collect(Collectors.toList());
-        if (bookings.stream().findAny().isEmpty() ||
-                bookings.stream()
-                        .filter(booking -> booking.getEnd().isAfter(comment.getCreated())).findAny().isEmpty()) {
-            throw new NoRightsException("Вы не можете оставить комментарий");
+        List<Booking> bookings = bookingRepository.findAllBookingsForItemAndUserByEndTime(comment.getItem().getId(),
+            comment.getAuthor().getId(), comment.getCreated());
+        if (bookings.size() == 0) {
+            throw new PostCommentException("Вы не можете оставить комментарий");
         }
     }
 
@@ -131,20 +124,42 @@ public class ItemService {
     }
 
     private void setBookingsForItem(ItemDto itemDto) {
-        try {
-            itemDto.setLastBooking(BookingMapper.toBookingItemDto(bookingRepository
-                    .findLastBookingForItem(LocalDateTime.now(), itemDto.getId()).stream()
-                    .filter(booking -> !booking.getStatus().equals(BookingStatus.REJECTED.name()))
-                    .findFirst().get()));
-            itemDto.setNextBooking(BookingMapper.toBookingItemDto(bookingRepository
-                    .findNextBookingForItem(LocalDateTime.now(), itemDto.getId()).stream()
-                    .filter(booking -> !booking.getStatus().equals(BookingStatus.REJECTED.name()))
-                    .findFirst().get()));
-        } catch (NoSuchElementException e) {
-            itemDto.setNextBooking(null);
+
+        Optional<Booking> optLastBooking = bookingRepository
+                .findLastBookingForItem(LocalDateTime.now(), itemDto.getId()).stream()
+                .findFirst();
+        if (optLastBooking.isPresent()){
+            itemDto.setLastBooking(BookingMapper.toBookingItemDto(optLastBooking.get()));
+        } else {
             itemDto.setLastBooking(null);
         }
+
+        Optional<Booking> optNextBooking = bookingRepository
+                .findNextBookingForItem(LocalDateTime.now(), itemDto.getId()).stream()
+                .filter(booking -> !booking.getStatus().equals(BookingStatus.REJECTED.name()))
+                .findFirst();
+        if (optNextBooking.isPresent()){
+            itemDto.setNextBooking(BookingMapper.toBookingItemDto(optNextBooking.get()));
+        } else {
+            itemDto.setNextBooking(null);
+        }
+
+//        try {
+//            itemDto.setLastBooking(BookingMapper.toBookingItemDto(bookingRepository
+//                    .findLastBookingForItem(LocalDateTime.now(), itemDto.getId()).stream()
+//                    //.filter(booking -> booking.getStatus().equals(BookingStatus.REJECTED.name()))
+//                    .findFirst().get()));
+//
+//        } catch (NoSuchElementException e) {
+//            itemDto.setLastBooking(null);
+//        }
+//        try {
+//            itemDto.setNextBooking(BookingMapper.toBookingItemDto(bookingRepository
+//                    .findNextBookingForItem(LocalDateTime.now(), itemDto.getId()).stream()
+//                    .filter(booking -> !booking.getStatus().equals(BookingStatus.REJECTED.name()))
+//                    .findFirst().get()));
+//        }catch (NoSuchElementException e) {
+//            itemDto.setNextBooking(null);
+//        }
     }
-
-
 }

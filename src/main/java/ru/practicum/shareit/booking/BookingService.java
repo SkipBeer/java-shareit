@@ -111,7 +111,7 @@ public class BookingService {
             return bookingRepository.findAllByOwner(sharerId).stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
         }
         if (state.toUpperCase().equals(BookingState.CURRENT.name())) {
-            return bookingRepository.findAllByEndIsAfterAndStartIsBefore(LocalDateTime.now(), LocalDateTime.now())
+            return bookingRepository.findAllByCurrentStateFowOwner(LocalDateTime.now(), sharerId)
                     .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
         }
         if (state.toUpperCase().equals(BookingState.REJECTED.name()) ||

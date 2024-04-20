@@ -14,6 +14,7 @@ public class ItemMapper {
                 item.getUserId(),
                 item.getRequest(),
                 null,
+                null,
                 null
         );
     }

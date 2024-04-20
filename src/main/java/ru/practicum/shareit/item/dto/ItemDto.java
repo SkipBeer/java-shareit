@@ -5,6 +5,8 @@ import lombok.Data;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.dto.BookingItemDto;
 
+import java.util.List;
+
 
 /**
  * TODO Sprint add-controllers.
@@ -22,4 +24,6 @@ public class ItemDto {
     private BookingItemDto lastBooking;
 
     private BookingItemDto nextBooking;
+
+    private List<CommentDto> comments;
 }

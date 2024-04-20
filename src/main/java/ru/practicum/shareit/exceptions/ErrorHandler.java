@@ -22,7 +22,7 @@ public class ErrorHandler {
 
     @ExceptionHandler({InvalidEmailException.class, MissingRequiredFieldsException.class,
             UnavailableItemException.class, IncorrectBookingTimeException.class,
-            IncorrectActionException.class, UnsupportedStatusException.class})
+            IncorrectActionException.class, UnsupportedStatusException.class, PostCommentException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleBadRequestException(final RuntimeException e) {
         return new ErrorResponse(
