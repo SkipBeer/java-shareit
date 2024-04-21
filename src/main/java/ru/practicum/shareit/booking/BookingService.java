@@ -107,7 +107,7 @@ public class BookingService {
                 -> {
             throw new UserNotFoundException("Пользователь с id " + sharerId + " не найден"); });
 
-        switch (BookingState.valueOf(state.toUpperCase())){
+        switch (BookingState.valueOf(state.toUpperCase())) {
             case ALL:
                 return bookingRepository.findAllByOwner(sharerId).stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
             case CURRENT:
