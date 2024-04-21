@@ -77,25 +77,23 @@ public class BookingService {
         if (Arrays.stream(BookingState.values()).noneMatch(existsState -> existsState.name().equals(state))) {
             throw new UnsupportedStatusException("Unknown state: " + state.toUpperCase());
         }
-        if (state.toUpperCase().equals(BookingState.ALL.name())) {
-            return bookingRepository.findAllOrderByEnd().stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
-        }
-        if (state.toUpperCase().equals(BookingState.CURRENT.name())) {
-            return bookingRepository.findAllByEndIsAfterAndStartIsBefore(LocalDateTime.now(), LocalDateTime.now())
-                    .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
-        }
-        if (state.toUpperCase().equals(BookingState.REJECTED.name()) ||
-                state.toUpperCase().equals(BookingState.WAITING.name())) {
-            return bookingRepository.findAllByStatus(state, sharerId)
-                    .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
-        }
-        if (state.toUpperCase().equals(BookingState.FUTURE.name())) {
-            return bookingRepository.findAllByStartIsAfter(LocalDateTime.now())
-                    .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
-        }
-        if (state.toUpperCase().equals(BookingState.PAST.name())) {
-            return bookingRepository.findAllByEndIsBefore(LocalDateTime.now())
-                    .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
+
+        switch (BookingState.valueOf(state.toUpperCase())) {
+            case ALL:
+                return bookingRepository.findAllOrderByEnd().stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
+            case PAST:
+                return bookingRepository.findAllByEndIsBefore(LocalDateTime.now())
+                        .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
+            case CURRENT:
+                return bookingRepository.findAllByEndIsAfterAndStartIsBefore(LocalDateTime.now(), LocalDateTime.now())
+                        .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
+            case FUTURE:
+                return bookingRepository.findAllByStartIsAfter(LocalDateTime.now())
+                        .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
+            case REJECTED:
+            case WAITING:
+                return bookingRepository.findAllByStatus(state, sharerId)
+                        .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
         }
         return Collections.emptyList();
     }
@@ -108,25 +106,24 @@ public class BookingService {
         userRepository.findById(sharerId).orElseThrow(()
                 -> {
             throw new UserNotFoundException("Пользователь с id " + sharerId + " не найден"); });
-        if (state.toUpperCase().equals(BookingState.ALL.name())) {
-            return bookingRepository.findAllByOwner(sharerId).stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
-        }
-        if (state.toUpperCase().equals(BookingState.CURRENT.name())) {
-            return bookingRepository.findAllByCurrentStateFowOwner(LocalDateTime.now(), sharerId)
-                    .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
-        }
-        if (state.toUpperCase().equals(BookingState.REJECTED.name()) ||
-                state.toUpperCase().equals(BookingState.WAITING.name())) {
-            return bookingRepository.findAllForOwnerByStatus(state, sharerId)
-                    .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
-        }
-        if (state.toUpperCase().equals(BookingState.FUTURE.name())) {
-            return bookingRepository.findAllByStartIsAfter(LocalDateTime.now())
-                    .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
-        }
-        if (state.toUpperCase().equals(BookingState.PAST.name())) {
-            return bookingRepository.findAllByEndIsBefore(LocalDateTime.now())
-                    .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
+
+        switch (BookingState.valueOf(state.toUpperCase())){
+            case ALL:
+                return bookingRepository.findAllByOwner(sharerId).stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
+            case CURRENT:
+                return bookingRepository.findAllByCurrentStateFowOwner(LocalDateTime.now(), sharerId)
+                        .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
+            case FUTURE:
+                return bookingRepository.findAllByStartIsAfter(LocalDateTime.now())
+                        .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
+            case PAST:
+                return bookingRepository.findAllByEndIsBefore(LocalDateTime.now())
+                        .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
+            case WAITING:
+            case REJECTED:
+                return bookingRepository.findAllForOwnerByStatus(state, sharerId)
+                        .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
+
         }
         return Collections.emptyList();
     }
