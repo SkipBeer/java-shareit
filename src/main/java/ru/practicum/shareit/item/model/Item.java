@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import ru.practicum.shareit.user.User;
 
 import javax.persistence.*;
 
@@ -30,7 +31,9 @@ public class Item {
     @NonNull
     @Column(nullable = false)
     private Boolean available;
-    @Column(name = "user_id")
-    private Long userId;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
     private Long request;
 }

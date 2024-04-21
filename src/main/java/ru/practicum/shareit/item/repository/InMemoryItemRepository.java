@@ -45,7 +45,7 @@ public class InMemoryItemRepository {
 
 
     public List<Item> getByUserId(Long userId) {
-        return items.values().stream().filter(item -> item.getUserId().equals(userId)).collect(Collectors.toList());
+        return items.values().stream().filter(item -> item.getUser().getId().equals(userId)).collect(Collectors.toList());
     }
 
 

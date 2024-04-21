@@ -34,17 +34,21 @@ public class ItemService {
 
     private final CommentRepository commentRepository;
 
-    public ItemDto add(ItemDto item, String owner) {
-        item.setOwner(Long.parseLong(owner));
-        validate(item);
-        return ItemMapper.toItemDto(itemRepository.save(ItemMapper.fromItemDto(item)));
+    public ItemDto add(ItemDto itemDto, String owner) {
+        itemDto.setOwner(Long.parseLong(owner));
+        validate(itemDto);
+        Item newItem = ItemMapper.fromItemDto(itemDto);
+        newItem.setUser(userRepository.findById(Long.parseLong(owner)).orElseThrow(()
+                        -> {
+                    throw new UserNotFoundException("Пользователь с id " + owner + " не найден"); }));
+        return ItemMapper.toItemDto(itemRepository.save(newItem));
     }
 
     public ItemDto update(ItemDto patch, Long itemId, String sharerId) {
         Item existsItem = itemRepository.findById(itemId)
                         .orElseThrow(() -> {
                             throw new ItemNotFoundException("Сущность с id " + itemId + " не найден"); });
-        if (existsItem.getUserId() != Long.parseLong(sharerId)) {
+        if (existsItem.getUser().getId() != Long.parseLong(sharerId)) {
             throw new NoRightsException("У пользователя с id=" + sharerId + " нет прав для редактирования этого товара");
         }
         customApplyPatchToItem(patch, existsItem);
@@ -88,7 +92,7 @@ public class ItemService {
                                     throw new ItemNotFoundException("Сущность с id " + itemId + " не найдена"); }),
                 userRepository.findById(sharerId).orElseThrow(()
                         -> {
-                    throw new UserNotFoundException("Пользователь с id " + itemId + " не найден"); }),
+                    throw new UserNotFoundException("Пользователь с id " + sharerId + " не найден"); }),
                 LocalDateTime.now());
         validateComment(comment);
         return CommentMapper.toCommentDto(commentRepository.save(comment));
@@ -147,23 +151,5 @@ public class ItemService {
         } else {
             itemDto.setNextBooking(null);
         }
-
-//        try {
-//            itemDto.setLastBooking(BookingMapper.toBookingItemDto(bookingRepository
-//                    .findLastBookingForItem(LocalDateTime.now(), itemDto.getId()).stream()
-//                    //.filter(booking -> booking.getStatus().equals(BookingStatus.REJECTED.name()))
-//                    .findFirst().get()));
-//
-//        } catch (NoSuchElementException e) {
-//            itemDto.setLastBooking(null);
-//        }
-//        try {
-//            itemDto.setNextBooking(BookingMapper.toBookingItemDto(bookingRepository
-//                    .findNextBookingForItem(LocalDateTime.now(), itemDto.getId()).stream()
-//                    .filter(booking -> !booking.getStatus().equals(BookingStatus.REJECTED.name()))
-//                    .findFirst().get()));
-//        }catch (NoSuchElementException e) {
-//            itemDto.setNextBooking(null);
-//        }
     }
 }

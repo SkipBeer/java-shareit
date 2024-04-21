@@ -11,7 +11,7 @@ public class ItemMapper {
                 item.getName(),
                 item.getDescription(),
                 item.getAvailable(),
-                item.getUserId(),
+                item.getUser().getId(),
                 item.getRequest(),
                 null,
                 null,
@@ -25,7 +25,7 @@ public class ItemMapper {
                 itemDto.getName(),
                 itemDto.getDescription(),
                 itemDto.getAvailable(),
-                itemDto.getOwner(),
+                null,
                 itemDto.getRequest()
         );
     }

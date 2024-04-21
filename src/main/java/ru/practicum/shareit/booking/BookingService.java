@@ -10,9 +10,12 @@ import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
+
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
@@ -38,7 +41,7 @@ public class BookingService {
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(()
                 -> {
             throw new BookingNotFoundException("Бронь с id " + bookingId + " не найдена"); });
-        if (!sharerId.equals(booking.getItem().getUserId())) {
+        if (!sharerId.equals(booking.getItem().getUser().getId())) {
             throw new NoRightsException("У пользователя с id " + sharerId + " нет прав для подтверждения бронирования");
         }
         if (Boolean.parseBoolean(approvedStatus)) {
@@ -60,7 +63,7 @@ public class BookingService {
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(()
                 -> {
             throw new BookingNotFoundException("Бронь с id " + bookingId + " не найдена"); });
-        if (!booking.getItem().getUserId().equals(sharerId) && !booking.getBooker().getId().equals(sharerId)) {
+        if (!booking.getItem().getUser().getId().equals(sharerId) && !booking.getBooker().getId().equals(sharerId)) {
             throw new BookingNotFoundException("У пользователя нет активных бронирований");
         }
         return BookingMapper.toBookingDto(booking);
@@ -94,7 +97,7 @@ public class BookingService {
             return bookingRepository.findAllByEndIsBefore(LocalDateTime.now())
                     .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
         }
-        return null;
+        return Collections.emptyList();
     }
 
     public List<BookingDto> getAllByOwnerAndState(Long sharerId, String state) {
@@ -125,7 +128,7 @@ public class BookingService {
             return bookingRepository.findAllByEndIsBefore(LocalDateTime.now())
                     .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
         }
-        return null;
+        return Collections.emptyList();
     }
 
     private void validate(Booking booking, Long userId) {
@@ -151,9 +154,10 @@ public class BookingService {
             throw new UnavailableItemException("Предмет недоступен для бронирования");
         }
 
-        if (userId.equals(booking.getItem().getUserId())) {
+        if (userId.equals(booking.getItem().getUser().getId())) {
             throw new NoRightsException("Вы не можете забронировать свой предмет");
         }
 
     }
 }
+
