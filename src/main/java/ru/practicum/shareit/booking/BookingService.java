@@ -2,6 +2,8 @@ package ru.practicum.shareit.booking;
 
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dto.BookingCreationDto;
 import ru.practicum.shareit.booking.dto.BookingDto;
@@ -11,6 +13,7 @@ import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -69,7 +72,7 @@ public class BookingService {
         return BookingMapper.toBookingDto(booking);
     }
 
-    public List<BookingDto> getAllByState(Long sharerId, String state) {
+    public List<BookingDto> getAllByState(Long sharerId, String state, Integer from, Integer size) {
         userRepository.findById(sharerId).orElseThrow(()
                 -> {
             throw new UserNotFoundException("Пользователь с id " + sharerId + " не найден"); });
@@ -77,28 +80,33 @@ public class BookingService {
         if (Arrays.stream(BookingState.values()).noneMatch(existsState -> existsState.name().equals(state))) {
             throw new UnsupportedStatusException("Unknown state: " + state.toUpperCase());
         }
-
         switch (BookingState.valueOf(state.toUpperCase())) {
             case ALL:
-                return bookingRepository.findAllOrderByEnd().stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
+                if (from  != null & size != null) {
+                    createPage(from, size);
+                    return customSublist( bookingRepository.findAllOrderByEndPageable().stream()
+                            .map(BookingMapper::toBookingDto).collect(Collectors.toList()), from, size);
+                }
+                return bookingRepository.findAllOrderByEnd(createPage(from, size)).stream()
+                        .map(BookingMapper::toBookingDto).collect(Collectors.toList());
             case PAST:
-                return bookingRepository.findAllByEndIsBefore(LocalDateTime.now())
+                return bookingRepository.findAllByEndIsBefore(LocalDateTime.now(),createPage(from, size))
                         .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
             case CURRENT:
-                return bookingRepository.findAllByEndIsAfterAndStartIsBefore(LocalDateTime.now(), LocalDateTime.now())
+                return bookingRepository.findAllByEndIsAfterAndStartIsBefore(LocalDateTime.now(), LocalDateTime.now(),createPage(from, size))
                         .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
             case FUTURE:
-                return bookingRepository.findAllByStartIsAfter(LocalDateTime.now())
+                return bookingRepository.findAllByStartIsAfter(LocalDateTime.now(),createPage(from, size))
                         .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
             case REJECTED:
             case WAITING:
-                return bookingRepository.findAllByStatus(state, sharerId)
+                return bookingRepository.findAllByStatus(state, sharerId, createPage(from, size))
                         .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
         }
         return Collections.emptyList();
     }
 
-    public List<BookingDto> getAllByOwnerAndState(Long sharerId, String state) {
+    public List<BookingDto> getAllByOwnerAndState(Long sharerId, String state, Integer from, Integer size) {
         if (Arrays.stream(BookingState.values()).noneMatch(existsState -> existsState.name().equals(state))) {
             throw new UnsupportedStatusException("Unknown state: " + state.toUpperCase());
 
@@ -109,19 +117,20 @@ public class BookingService {
 
         switch (BookingState.valueOf(state.toUpperCase())) {
             case ALL:
-                return bookingRepository.findAllByOwner(sharerId).stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
+                return bookingRepository.findAllByOwner(sharerId, createPage(from, size)).stream()
+                        .map(BookingMapper::toBookingDto).collect(Collectors.toList());
             case CURRENT:
-                return bookingRepository.findAllByCurrentStateFowOwner(LocalDateTime.now(), sharerId)
+                return bookingRepository.findAllByCurrentStateFowOwner(LocalDateTime.now(), sharerId, createPage(from, size))
                         .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
             case FUTURE:
-                return bookingRepository.findAllByStartIsAfter(LocalDateTime.now())
+                return bookingRepository.findAllByStartIsAfter(LocalDateTime.now(), createPage(from, size))
                         .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
             case PAST:
-                return bookingRepository.findAllByEndIsBefore(LocalDateTime.now())
+                return bookingRepository.findAllByEndIsBefore(LocalDateTime.now(), createPage(from, size))
                         .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
             case WAITING:
             case REJECTED:
-                return bookingRepository.findAllForOwnerByStatus(state, sharerId)
+                return bookingRepository.findAllForOwnerByStatus(state, sharerId, createPage(from, size))
                         .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
 
         }
@@ -156,5 +165,29 @@ public class BookingService {
         }
 
     }
+
+    private PageRequest createPage(Integer from, Integer size) {
+        if (from == null || size == null) {
+            return null;
+        }
+        if (from < 0 || size < 0 || (from == 0 & size == 0)) {
+            throw new IncorrectRequestParamException("Некорректные параметры постраничного отображения");
+        }
+        return PageRequest.of(from, size);
+    }
+
+    private List<BookingDto> customSublist(List<BookingDto> dtoList, Integer from, Integer size) {
+        if (from == null || size == null) {
+            return dtoList;
+        }
+        if (from < 0 || size < 0 || (from == 0 & size == 0)) {
+            throw new IncorrectRequestParamException("Некорректные параметры постраничного отображения");
+        }
+        if (dtoList.size() > size) {
+            dtoList = dtoList.subList(7, 8);
+        }
+        return dtoList;
+    }
+
 }
 

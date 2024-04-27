@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingMapper;
@@ -16,6 +17,8 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.ItemRequest;
+import ru.practicum.shareit.request.ItemRequestRepository;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
@@ -34,6 +37,8 @@ public class ItemService {
 
     private final CommentRepository commentRepository;
 
+    private final ItemRequestRepository requestRepository;
+
     public ItemDto add(ItemDto itemDto, String owner) {
         itemDto.setOwner(Long.parseLong(owner));
         validate(itemDto);
@@ -41,6 +46,7 @@ public class ItemService {
         newItem.setUser(userRepository.findById(Long.parseLong(owner)).orElseThrow(()
                         -> {
                     throw new UserNotFoundException("Пользователь с id " + owner + " не найден"); }));
+        setRequestForItem(newItem, itemDto.getRequestId());
         return ItemMapper.toItemDto(itemRepository.save(newItem));
     }
 
@@ -150,6 +156,15 @@ public class ItemService {
             itemDto.setNextBooking(BookingMapper.toBookingItemDto(optNextBooking.get()));
         } else {
             itemDto.setNextBooking(null);
+        }
+    }
+
+    private void setRequestForItem(Item item, Long requestId) {
+        if(requestId != null){
+            Optional<ItemRequest> request = requestRepository.findById(requestId);
+            request.ifPresent(item::setRequest);
+        } else {
+            item.setRequest(null);
         }
     }
 }
