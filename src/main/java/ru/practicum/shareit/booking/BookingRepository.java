@@ -16,8 +16,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     @Query("select b from Booking b where b.item.user.id = ?2 and b.status = ?1 order by b.end desc")
     List<Booking> findAllForOwnerByStatus(String status, Long sharerId, Pageable pageable);
 
-    @Query("select b from Booking b order by b.end desc")
-    List<Booking> findAllOrderByEnd(Pageable pageable);
+    @Query("select b from Booking b where b.booker.id = ?1 order by b.end desc")
+    List<Booking> findAllOrderByEnd(Long sharerId, Pageable pageable);
 
     @Query("select b from Booking b order by b.end desc")
     List<Booking> findAllOrderByEndPageable();

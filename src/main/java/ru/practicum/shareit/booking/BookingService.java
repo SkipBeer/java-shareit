@@ -82,12 +82,7 @@ public class BookingService {
         }
         switch (BookingState.valueOf(state.toUpperCase())) {
             case ALL:
-                if (from  != null & size != null) {
-                    createPage(from, size);
-                    return customSublist( bookingRepository.findAllOrderByEndPageable().stream()
-                            .map(BookingMapper::toBookingDto).collect(Collectors.toList()), from, size);
-                }
-                return bookingRepository.findAllOrderByEnd(createPage(from, size)).stream()
+                return bookingRepository.findAllOrderByEnd(sharerId, createPage(from, size)).stream()
                         .map(BookingMapper::toBookingDto).collect(Collectors.toList());
             case PAST:
                 return bookingRepository.findAllByEndIsBefore(LocalDateTime.now(),createPage(from, size))
@@ -173,21 +168,11 @@ public class BookingService {
         if (from < 0 || size < 0 || (from == 0 & size == 0)) {
             throw new IncorrectRequestParamException("Некорректные параметры постраничного отображения");
         }
-        return PageRequest.of(from, size);
+        if(from == 0) {
+            PageRequest.of(from, size);
+        }
+        int page = from / size;
+        return PageRequest.of(page, size);
     }
-
-    private List<BookingDto> customSublist(List<BookingDto> dtoList, Integer from, Integer size) {
-        if (from == null || size == null) {
-            return dtoList;
-        }
-        if (from < 0 || size < 0 || (from == 0 & size == 0)) {
-            throw new IncorrectRequestParamException("Некорректные параметры постраничного отображения");
-        }
-        if (dtoList.size() > size) {
-            dtoList = dtoList.subList(7, 8);
-        }
-        return dtoList;
-    }
-
 }
 
