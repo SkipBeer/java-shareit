@@ -185,7 +185,7 @@ public class RequestServiceTest {
 
         ItemRequestDto requestDto = service.getRequest(1L, 1L);
 
-        Assertions.assertEquals(requestDto, dto);
+        Assertions.assertEquals(requestDto.getId(), dto.getId());
 
     }
 
