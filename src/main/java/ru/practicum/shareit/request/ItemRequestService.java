@@ -86,7 +86,9 @@ public class ItemRequestService {
     }
 
     private void validatePagination(Integer from, Integer size) {
-        if (from < 0 || size < 0 || (from == 0 & size == 0)) {
+        if (from < 0 || size < 0) {
+            throw new IncorrectRequestParamException("Некорректные параметры постраничного отображения");
+        } else if ((from == 0 && size == 0)) {
             throw new IncorrectRequestParamException("Некорректные параметры постраничного отображения");
         }
     }

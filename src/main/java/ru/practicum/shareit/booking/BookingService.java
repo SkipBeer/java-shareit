@@ -157,7 +157,13 @@ public class BookingService {
         if (from == null || size == null) {
             return null;
         }
-        if (from < 0 || size < 0 || (from == 0 & size == 0)) {
+        if (from < 0) {
+            throw new IncorrectRequestParamException("Некорректные параметры постраничного отображения");
+        }
+        if (size < 0) {
+            throw new IncorrectRequestParamException("Некорректные параметры постраничного отображения");
+        }
+        if (from == 0 && size == 0) {
             throw new IncorrectRequestParamException("Некорректные параметры постраничного отображения");
         }
         int page = from / size;
