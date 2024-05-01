@@ -11,7 +11,7 @@ import ru.practicum.shareit.exceptions.exceptions.*;
 public class ErrorHandler {
 
     @ExceptionHandler({UserNotFoundException.class, ItemNotFoundException.class,
-            NoRightsException.class, BookingNotFoundException.class})
+            NoRightsException.class, BookingNotFoundException.class, RequestNotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleNotFoundException(final RuntimeException e) {
         return new ErrorResponse(
@@ -21,7 +21,8 @@ public class ErrorHandler {
 
     @ExceptionHandler({InvalidEmailException.class, MissingRequiredFieldsException.class,
             UnavailableItemException.class, IncorrectBookingTimeException.class,
-            IncorrectActionException.class, UnsupportedStatusException.class, PostCommentException.class})
+            IncorrectActionException.class, UnsupportedStatusException.class, PostCommentException.class,
+            IncorrectRequestParamException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleBadRequestException(final RuntimeException e) {
         return new ErrorResponse(

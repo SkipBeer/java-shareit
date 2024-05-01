@@ -2,6 +2,7 @@ package ru.practicum.shareit.booking;
 
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dto.BookingCreationDto;
 import ru.practicum.shareit.booking.dto.BookingDto;
@@ -69,7 +70,7 @@ public class BookingService {
         return BookingMapper.toBookingDto(booking);
     }
 
-    public List<BookingDto> getAllByState(Long sharerId, String state) {
+    public List<BookingDto> getAllByState(Long sharerId, String state, Integer from, Integer size) {
         userRepository.findById(sharerId).orElseThrow(()
                 -> {
             throw new UserNotFoundException("Пользователь с id " + sharerId + " не найден"); });
@@ -77,29 +78,30 @@ public class BookingService {
         if (Arrays.stream(BookingState.values()).noneMatch(existsState -> existsState.name().equals(state))) {
             throw new UnsupportedStatusException("Unknown state: " + state.toUpperCase());
         }
-
         switch (BookingState.valueOf(state.toUpperCase())) {
             case ALL:
-                return bookingRepository.findAllOrderByEnd().stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
+                return bookingRepository.findAllOrderByEnd(sharerId, createPage(from, size)).stream()
+                        .map(BookingMapper::toBookingDto).collect(Collectors.toList());
             case PAST:
-                return bookingRepository.findAllByEndIsBefore(LocalDateTime.now())
+                return bookingRepository.findAllByEndIsBefore(LocalDateTime.now(),createPage(from, size))
                         .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
             case CURRENT:
-                return bookingRepository.findAllByEndIsAfterAndStartIsBefore(LocalDateTime.now(), LocalDateTime.now())
+                return bookingRepository.findAllByEndIsAfterAndStartIsBefore(LocalDateTime.now(), LocalDateTime.now(),createPage(from, size))
                         .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
             case FUTURE:
-                return bookingRepository.findAllByStartIsAfter(LocalDateTime.now())
+                return bookingRepository.findAllByStartIsAfter(LocalDateTime.now(),createPage(from, size))
                         .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
             case REJECTED:
             case WAITING:
-                return bookingRepository.findAllByStatus(state, sharerId)
+                return bookingRepository.findAllByStatus(state, sharerId, createPage(from, size))
                         .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
+            default:
+                return Collections.emptyList();
         }
-        return Collections.emptyList();
     }
 
-    public List<BookingDto> getAllByOwnerAndState(Long sharerId, String state) {
-        if (Arrays.stream(BookingState.values()).noneMatch(existsState -> existsState.name().equals(state))) {
+    public List<BookingDto> getAllByOwnerAndState(Long sharerId, String state, Integer from, Integer size) {
+        if (Arrays.stream(BookingState.values()).noneMatch(existsState -> existsState.name().equals(state.toUpperCase()))) {
             throw new UnsupportedStatusException("Unknown state: " + state.toUpperCase());
 
         }
@@ -109,29 +111,27 @@ public class BookingService {
 
         switch (BookingState.valueOf(state.toUpperCase())) {
             case ALL:
-                return bookingRepository.findAllByOwner(sharerId).stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
+                return bookingRepository.findAllByOwner(sharerId, createPage(from, size)).stream()
+                        .map(BookingMapper::toBookingDto).collect(Collectors.toList());
             case CURRENT:
-                return bookingRepository.findAllByCurrentStateFowOwner(LocalDateTime.now(), sharerId)
+                return bookingRepository.findAllByCurrentStateFowOwner(LocalDateTime.now(), sharerId, createPage(from, size))
                         .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
             case FUTURE:
-                return bookingRepository.findAllByStartIsAfter(LocalDateTime.now())
+                return bookingRepository.findAllByStartIsAfter(LocalDateTime.now(), createPage(from, size))
                         .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
             case PAST:
-                return bookingRepository.findAllByEndIsBefore(LocalDateTime.now())
+                return bookingRepository.findAllByEndIsBefore(LocalDateTime.now(), createPage(from, size))
                         .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
             case WAITING:
             case REJECTED:
-                return bookingRepository.findAllForOwnerByStatus(state, sharerId)
+                return bookingRepository.findAllForOwnerByStatus(state, sharerId, createPage(from, size))
                         .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
-
+            default:
+                return Collections.emptyList();
         }
-        return Collections.emptyList();
     }
 
     private void validate(Booking booking, Long userId) {
-        if (userRepository.findById(userId).isEmpty()) {
-            throw new UserNotFoundException("Пользователь с id " + userId + " не найден");
-        }
 
         if (booking.getEnd() == null || booking.getStart() == null) {
             throw new IncorrectBookingTimeException("Необходимо указать время бронирования");
@@ -143,10 +143,6 @@ public class BookingService {
             throw new IncorrectBookingTimeException("Некорректно указано время бронирования");
         }
 
-        if (booking.getItem() == null) {
-            throw new ItemNotFoundException("Предмет с id не найден");
-        }
-
         if (!booking.getItem().getAvailable()) {
             throw new UnavailableItemException("Предмет недоступен для бронирования");
         }
@@ -155,6 +151,17 @@ public class BookingService {
             throw new NoRightsException("Вы не можете забронировать свой предмет");
         }
 
+    }
+
+    private PageRequest createPage(Integer from, Integer size) {
+        if (from == null || size == null) {
+            return null;
+        }
+        if (from < 0 || size < 0 || (from == 0 & size == 0)) {
+            throw new IncorrectRequestParamException("Некорректные параметры постраничного отображения");
+        }
+        int page = from / size;
+        return PageRequest.of(page, size);
     }
 }
 
