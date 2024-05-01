@@ -147,7 +147,7 @@ public class ItemServiceTest {
     }
 
     @Test
-    void NoRightsToUpdateTest() {
+    void noRightsToUpdateTest() {
         Mockito.when(itemRepository.findById(Mockito.anyLong())).thenReturn(Optional.ofNullable(item));
         Mockito.when(itemRepository.save(Mockito.any())).thenReturn(item);
 

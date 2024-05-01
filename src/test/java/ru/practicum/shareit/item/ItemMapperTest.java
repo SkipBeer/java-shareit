@@ -8,14 +8,14 @@ import ru.practicum.shareit.item.mapper.ItemMapper;
 public class ItemMapperTest {
 
     @Test
-    void CommentMapperConstructorTest() {
+    void commentMapperConstructorTest() {
         CommentMapper commentMapper = new CommentMapper();
 
         Assertions.assertNotEquals(commentMapper, null);
     }
 
     @Test
-    void ItemMapperConstructorTest() {
+    void itemMapperConstructorTest() {
         ItemMapper itemMapper = new ItemMapper();
 
         Assertions.assertNotEquals(itemMapper, null);

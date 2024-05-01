@@ -50,7 +50,7 @@ public class RequestControllerTest {
 
     @Test
     void getRequestFromOtherUsersTest() {
-        controller.getRequestsFromOtherUsers(Mockito.anyLong(), Mockito.anyInt() , Mockito.anyInt());
+        controller.getRequestsFromOtherUsers(Mockito.anyLong(), Mockito.anyInt(), Mockito.anyInt());
 
         Mockito.verify(service, Mockito.times(1))
                 .getAllFromOtherUsers(Mockito.anyLong(), Mockito.any(), Mockito.any());

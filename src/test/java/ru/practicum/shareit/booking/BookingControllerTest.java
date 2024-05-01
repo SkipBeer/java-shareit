@@ -17,6 +17,7 @@ public class BookingControllerTest {
             1L,
             LocalDateTime.now().minusSeconds(1),
             LocalDateTime.now().plusSeconds(1));
+
     @Test
     void addTest() {
         controller.addBooking(creationDto, 1L);

@@ -7,7 +7,7 @@ import ru.practicum.shareit.exceptions.ErrorResponse;
 public class ExceptionTest {
 
     @Test
-    void ErrorResponseTest() {
+    void errorResponseTest() {
         String currentError = "error";
         ErrorResponse response = new ErrorResponse(currentError);
         String error =  response.getError();
