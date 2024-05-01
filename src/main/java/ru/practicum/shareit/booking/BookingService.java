@@ -3,7 +3,6 @@ package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dto.BookingCreationDto;
 import ru.practicum.shareit.booking.dto.BookingDto;
@@ -13,7 +12,6 @@ import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -97,12 +95,13 @@ public class BookingService {
             case WAITING:
                 return bookingRepository.findAllByStatus(state, sharerId, createPage(from, size))
                         .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
+            default:
+                return Collections.emptyList();
         }
-        return Collections.emptyList();
     }
 
     public List<BookingDto> getAllByOwnerAndState(Long sharerId, String state, Integer from, Integer size) {
-        if (Arrays.stream(BookingState.values()).noneMatch(existsState -> existsState.name().equals(state))) {
+        if (Arrays.stream(BookingState.values()).noneMatch(existsState -> existsState.name().equals(state.toUpperCase()))) {
             throw new UnsupportedStatusException("Unknown state: " + state.toUpperCase());
 
         }
@@ -127,15 +126,12 @@ public class BookingService {
             case REJECTED:
                 return bookingRepository.findAllForOwnerByStatus(state, sharerId, createPage(from, size))
                         .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
-
+            default:
+                return Collections.emptyList();
         }
-        return Collections.emptyList();
     }
 
     private void validate(Booking booking, Long userId) {
-        if (userRepository.findById(userId).isEmpty()) {
-            throw new UserNotFoundException("Пользователь с id " + userId + " не найден");
-        }
 
         if (booking.getEnd() == null || booking.getStart() == null) {
             throw new IncorrectBookingTimeException("Необходимо указать время бронирования");
@@ -145,10 +141,6 @@ public class BookingService {
                 || booking.getStart().isAfter(booking.getEnd()) || booking.getEnd().isBefore(LocalDateTime.now())
                 || booking.getStart().isBefore(LocalDateTime.now())) {
             throw new IncorrectBookingTimeException("Некорректно указано время бронирования");
-        }
-
-        if (booking.getItem() == null) {
-            throw new ItemNotFoundException("Предмет с id не найден");
         }
 
         if (!booking.getItem().getAvailable()) {
@@ -167,9 +159,6 @@ public class BookingService {
         }
         if (from < 0 || size < 0 || (from == 0 & size == 0)) {
             throw new IncorrectRequestParamException("Некорректные параметры постраничного отображения");
-        }
-        if(from == 0) {
-            PageRequest.of(from, size);
         }
         int page = from / size;
         return PageRequest.of(page, size);

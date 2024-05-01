@@ -1,7 +1,6 @@
 package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingMapper;
@@ -53,7 +52,7 @@ public class ItemService {
     public ItemDto update(ItemDto patch, Long itemId, String sharerId) {
         Item existsItem = itemRepository.findById(itemId)
                         .orElseThrow(() -> {
-                            throw new ItemNotFoundException("Сущность с id " + itemId + " не найден"); });
+                            throw new ItemNotFoundException("Сущность с id " + itemId + " не найдена"); });
         if (existsItem.getUser().getId() != Long.parseLong(sharerId)) {
             throw new NoRightsException("У пользователя с id=" + sharerId + " нет прав для редактирования этого товара");
         }
@@ -64,7 +63,7 @@ public class ItemService {
     public ItemDto getById(Long itemId, Long sharerId) {
         ItemDto itemDto = ItemMapper.toItemDto(itemRepository.findById(itemId)
                 .orElseThrow(() -> {
-                    throw new ItemNotFoundException("Сущность с id " + itemId + " не найден"); }));
+                    throw new ItemNotFoundException("Сущность с id " + itemId + " не найдена"); }));
         if (itemDto.getOwner().equals(sharerId)) {
             setBookingsForItem(itemDto);
         }
@@ -108,9 +107,6 @@ public class ItemService {
     private void validate(ItemDto item) {
         if (item.getAvailable() == null || item.getName().isEmpty() || item.getDescription() == null) {
             throw new MissingRequiredFieldsException("Поля available, name и description не могут быть пустыми");
-        }
-        if (userRepository.findById(item.getOwner()).isEmpty()) {
-            throw new UserNotFoundException("Владелец с id " + item.getOwner() + " не найден");
         }
     }
 
@@ -160,7 +156,7 @@ public class ItemService {
     }
 
     private void setRequestForItem(Item item, Long requestId) {
-        if(requestId != null){
+        if (requestId != null) {
             Optional<ItemRequest> request = requestRepository.findById(requestId);
             request.ifPresent(item::setRequest);
         } else {

@@ -62,10 +62,6 @@ public class UserService {
     }
 
     private void validate(UserDto user, Long id) {
-        if (user.getEmail() == null) {
-            throw new InvalidEmailException("email не может быть пустым");
-        }
-
         if (!user.getEmail().contains("@")) {
             throw new InvalidEmailException("email должен соответствовать формату example@example.com");
         }

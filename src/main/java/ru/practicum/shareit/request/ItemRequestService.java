@@ -3,7 +3,6 @@ package ru.practicum.shareit.request;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exceptions.exceptions.IncorrectRequestParamException;
 import ru.practicum.shareit.exceptions.exceptions.MissingRequiredFieldsException;
@@ -49,7 +48,7 @@ public class ItemRequestService {
     }
 
     public List<ItemRequestDto> getAllFromOtherUsers(Long sharerId, Integer from, Integer size) {
-        if(from == null & size == null) {
+        if (from == null & size == null) {
             return new ArrayList<>();
         }
         validatePagination(from, size);
@@ -77,7 +76,7 @@ public class ItemRequestService {
 
     private void validate(ItemRequest request, Long sharerId) {
 
-        if(request.getDescription() == null || request.getDescription().isBlank()) {
+        if (request.getDescription() == null || request.getDescription().isBlank()) {
             throw new MissingRequiredFieldsException("Описание запроса не может быть пустым");
         }
 

@@ -8,7 +8,7 @@ public class ItemMapper {
 
     public static ItemDto toItemDto(Item item) {
         Long requestId;
-        if (item.getRequest() == null){
+        if (item.getRequest() == null) {
             requestId = null;
         } else {
             requestId = item.getRequest().getId();
