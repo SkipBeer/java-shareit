@@ -22,6 +22,6 @@ public class BookingMapperTest {
 
         Assertions.assertNotEquals(mapper, null);
         Assertions.assertEquals(creationDto.getStart(), booking.getStart());
-        Assertions.assertEquals(creationDto.getEnd(), booking.getStart());
+        Assertions.assertEquals(creationDto.getEnd(), booking.getEnd());
     }
 }
