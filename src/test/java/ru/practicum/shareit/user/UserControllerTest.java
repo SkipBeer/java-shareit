@@ -65,7 +65,7 @@ public class UserControllerTest {
     }
 
     @Test
-    public void updateUserTest() throws Exception{
+    public void updateUserTest() throws Exception {
         this.userDto.setName("newName");
 
         Mockito.when(userService.update(this.userDto.getId(),userDto)).thenReturn(this.userDto);
@@ -85,7 +85,7 @@ public class UserControllerTest {
     }
 
     @Test
-    public void getAllTest() throws Exception{
+    public void getAllTest() throws Exception {
         UserDto userDto1 = new UserDto(1L, "user1", "1");
         UserDto userDto2 = new UserDto(2L, "user2", "2");
         UserDto userDto3 = new UserDto(3L, "user3", "3");
@@ -108,7 +108,7 @@ public class UserControllerTest {
     }
 
     @Test
-    public void deleteByIdTest() throws Exception{
+    public void deleteByIdTest() throws Exception {
         userController.deleteById(userDto.getId());
         Mockito.verify(userService, Mockito.times(1)).deleteById(Mockito.anyLong());
 
@@ -122,7 +122,7 @@ public class UserControllerTest {
     }
 
     @Test
-    public void getByIdTest() throws Exception{
+    public void getByIdTest() throws Exception {
         Mockito.when(userService.getById(Mockito.anyLong())).thenReturn(userDto);
 
         UserDto dto = userController.getUserById(userDto.getId());

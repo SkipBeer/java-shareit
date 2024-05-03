@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.exceptions.exceptions.IncorrectRequestParamException;
 import ru.practicum.shareit.exceptions.exceptions.MissingRequiredFieldsException;
 import ru.practicum.shareit.exceptions.exceptions.RequestNotFoundException;
 import ru.practicum.shareit.exceptions.exceptions.UserNotFoundException;
