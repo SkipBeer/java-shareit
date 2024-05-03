@@ -14,6 +14,7 @@ import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.request.dto.ItemRequestCreationDto;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.user.repository.UserRepository;
+import ru.practicum.shareit.validation.PaginationValidator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +52,7 @@ public class ItemRequestService {
         if (from == null & size == null) {
             return new ArrayList<>();
         }
-        validatePagination(from, size);
+        PaginationValidator.validatePagination(from, size);
         Pageable pageable = PageRequest.of(from, size);
         userRepository.findById(sharerId).orElseThrow(()
                 -> {
@@ -83,14 +84,6 @@ public class ItemRequestService {
         request.setRequestor(userRepository.findById(sharerId).orElseThrow(()
                 -> {
             throw new UserNotFoundException("Пользователь с id " + sharerId + " не найден"); }));
-    }
-
-    private void validatePagination(Integer from, Integer size) {
-        if (from < 0 || size < 0) {
-            throw new IncorrectRequestParamException("Некорректные параметры постраничного отображения");
-        } else if ((from == 0 && size == 0)) {
-            throw new IncorrectRequestParamException("Некорректные параметры постраничного отображения");
-        }
     }
 
     private void setItemsForRequest(ItemRequestDto request) {
