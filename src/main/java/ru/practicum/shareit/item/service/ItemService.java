@@ -16,6 +16,8 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.ItemRequest;
+import ru.practicum.shareit.request.ItemRequestRepository;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
@@ -34,6 +36,8 @@ public class ItemService {
 
     private final CommentRepository commentRepository;
 
+    private final ItemRequestRepository requestRepository;
+
     public ItemDto add(ItemDto itemDto, String owner) {
         itemDto.setOwner(Long.parseLong(owner));
         validate(itemDto);
@@ -41,13 +45,14 @@ public class ItemService {
         newItem.setUser(userRepository.findById(Long.parseLong(owner)).orElseThrow(()
                         -> {
                     throw new UserNotFoundException("Пользователь с id " + owner + " не найден"); }));
+        setRequestForItem(newItem, itemDto.getRequestId());
         return ItemMapper.toItemDto(itemRepository.save(newItem));
     }
 
     public ItemDto update(ItemDto patch, Long itemId, String sharerId) {
         Item existsItem = itemRepository.findById(itemId)
                         .orElseThrow(() -> {
-                            throw new ItemNotFoundException("Сущность с id " + itemId + " не найден"); });
+                            throw new ItemNotFoundException("Сущность с id " + itemId + " не найдена"); });
         if (existsItem.getUser().getId() != Long.parseLong(sharerId)) {
             throw new NoRightsException("У пользователя с id=" + sharerId + " нет прав для редактирования этого товара");
         }
@@ -58,7 +63,7 @@ public class ItemService {
     public ItemDto getById(Long itemId, Long sharerId) {
         ItemDto itemDto = ItemMapper.toItemDto(itemRepository.findById(itemId)
                 .orElseThrow(() -> {
-                    throw new ItemNotFoundException("Сущность с id " + itemId + " не найден"); }));
+                    throw new ItemNotFoundException("Сущность с id " + itemId + " не найдена"); }));
         if (itemDto.getOwner().equals(sharerId)) {
             setBookingsForItem(itemDto);
         }
@@ -102,9 +107,6 @@ public class ItemService {
     private void validate(ItemDto item) {
         if (item.getAvailable() == null || item.getName().isEmpty() || item.getDescription() == null) {
             throw new MissingRequiredFieldsException("Поля available, name и description не могут быть пустыми");
-        }
-        if (userRepository.findById(item.getOwner()).isEmpty()) {
-            throw new UserNotFoundException("Владелец с id " + item.getOwner() + " не найден");
         }
     }
 
@@ -150,6 +152,15 @@ public class ItemService {
             itemDto.setNextBooking(BookingMapper.toBookingItemDto(optNextBooking.get()));
         } else {
             itemDto.setNextBooking(null);
+        }
+    }
+
+    private void setRequestForItem(Item item, Long requestId) {
+        if (requestId != null) {
+            Optional<ItemRequest> request = requestRepository.findById(requestId);
+            request.ifPresent(item::setRequest);
+        } else {
+            item.setRequest(null);
         }
     }
 }
