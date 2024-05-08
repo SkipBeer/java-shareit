@@ -1,8 +1,7 @@
-package ru.practicum.shareit.exception;
+package ru.practicum.shareit.exceptions;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import ru.practicum.shareit.exceptions.ErrorResponse;
 
 public class ExceptionTest {
 

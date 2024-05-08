@@ -38,22 +38,22 @@ public class ItemService {
 
     private final ItemRequestRepository requestRepository;
 
-    public ItemDto add(ItemDto itemDto, String owner) {
-        itemDto.setOwner(Long.parseLong(owner));
+    public ItemDto add(ItemDto itemDto, long owner) {
+        itemDto.setOwner(owner);
         validate(itemDto);
         Item newItem = ItemMapper.fromItemDto(itemDto);
-        newItem.setUser(userRepository.findById(Long.parseLong(owner)).orElseThrow(()
+        newItem.setUser(userRepository.findById(owner).orElseThrow(()
                         -> {
                     throw new UserNotFoundException("Пользователь с id " + owner + " не найден"); }));
         setRequestForItem(newItem, itemDto.getRequestId());
         return ItemMapper.toItemDto(itemRepository.save(newItem));
     }
 
-    public ItemDto update(ItemDto patch, Long itemId, String sharerId) {
+    public ItemDto update(ItemDto patch, Long itemId, long sharerId) {
         Item existsItem = itemRepository.findById(itemId)
                         .orElseThrow(() -> {
                             throw new ItemNotFoundException("Сущность с id " + itemId + " не найдена"); });
-        if (existsItem.getUser().getId() != Long.parseLong(sharerId)) {
+        if (existsItem.getUser().getId() != sharerId) {
             throw new NoRightsException("У пользователя с id=" + sharerId + " нет прав для редактирования этого товара");
         }
         customApplyPatchToItem(patch, existsItem);
@@ -98,7 +98,7 @@ public class ItemService {
                 userRepository.findById(sharerId).orElseThrow(()
                         -> {
                     throw new UserNotFoundException("Пользователь с id " + sharerId + " не найден"); }),
-                LocalDateTime.now());
+                creationDto.getCreated());
         validateComment(comment);
         return CommentMapper.toCommentDto(commentRepository.save(comment));
     }

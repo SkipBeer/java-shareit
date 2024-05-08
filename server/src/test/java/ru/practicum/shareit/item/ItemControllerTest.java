@@ -59,9 +59,9 @@ public class ItemControllerTest {
 
     @Test
     void addItemTest() throws Exception {
-       Mockito.when(service.add(Mockito.any(), Mockito.anyString())).thenReturn(dto);
+       Mockito.when(service.add(Mockito.any(), Mockito.anyLong())).thenReturn(dto);
 
-       ItemDto newItem = controller.addItem(dto, "1L");
+       ItemDto newItem = controller.addItem(dto, 1L);
 
         mvc.perform(post("/items")
                         .header("X-Sharer-User-Id", 1L)
@@ -78,9 +78,9 @@ public class ItemControllerTest {
 
     @Test
     void updateTest() throws Exception {
-        Mockito.when(service.update(Mockito.any(), Mockito.anyLong(), Mockito.any())).thenReturn(dto);
+        Mockito.when(service.update(Mockito.any(), Mockito.anyLong(), Mockito.anyLong())).thenReturn(dto);
 
-        ItemDto itemDto = controller.update(1L, "1", dto);
+        ItemDto itemDto = controller.update(1L, 1, dto);
 
         mvc.perform(patch("/items/{itemId}", 1L)
                         .header("X-Sharer-User-Id", 1L)
@@ -142,7 +142,7 @@ public class ItemControllerTest {
 
         Mockito.when(service.search(Mockito.any())).thenReturn(dtoList);
 
-        List<ItemDto> newDtoList = controller.search("a", null, null);
+        List<ItemDto> newDtoList = controller.search(1L, "a", null, null);
 
         mvc.perform(get("/items")
                         .header("X-Sharer-User-Id", 1L)

@@ -65,7 +65,7 @@ public class ItemServiceTest {
         Mockito.when(userRepository.findById(Mockito.anyLong())).thenReturn(Optional.ofNullable(user));
         Mockito.when(itemRepository.save(Mockito.any())).thenReturn(item);
 
-        ItemDto newItem = service.add(itemDto, "1");
+        ItemDto newItem = service.add(itemDto, 1);
 
         Assertions.assertEquals(newItem, itemDto);
     }
@@ -76,7 +76,7 @@ public class ItemServiceTest {
         Mockito.when(itemRepository.save(Mockito.any())).thenReturn(item);
         Mockito.when(requestRepository.findById(Mockito.anyLong())).thenReturn(Optional.ofNullable(request));
         itemDto.setRequestId(request.getId());
-        ItemDto newItem = service.add(itemDto, "1");
+        ItemDto newItem = service.add(itemDto, 1);
 
         Assertions.assertEquals(newItem.getId(), itemDto.getId());
     }
@@ -87,7 +87,7 @@ public class ItemServiceTest {
         Mockito.when(itemRepository.save(Mockito.any())).thenReturn(item);
         itemDto.setAvailable(null);
         final MissingRequiredFieldsException exception =  Assertions.assertThrows(
-                MissingRequiredFieldsException.class, () -> service.add(itemDto, "1"));
+                MissingRequiredFieldsException.class, () -> service.add(itemDto, 1));
 
         Assertions.assertEquals(exception.getMessage(), "Поля available, name и description не могут быть пустыми");
     }
@@ -98,7 +98,7 @@ public class ItemServiceTest {
         Mockito.when(itemRepository.save(Mockito.any())).thenReturn(item);
         itemDto.setDescription(null);
         final MissingRequiredFieldsException exception =  Assertions.assertThrows(
-                MissingRequiredFieldsException.class, () -> service.add(itemDto, "1"));
+                MissingRequiredFieldsException.class, () -> service.add(itemDto, 1));
 
         Assertions.assertEquals(exception.getMessage(), "Поля available, name и description не могут быть пустыми");
     }
@@ -109,7 +109,7 @@ public class ItemServiceTest {
         Mockito.when(itemRepository.save(Mockito.any())).thenReturn(item);
         itemDto.setName("");
         final MissingRequiredFieldsException exception =  Assertions.assertThrows(
-                MissingRequiredFieldsException.class, () -> service.add(itemDto, "1"));
+                MissingRequiredFieldsException.class, () -> service.add(itemDto, 1));
 
         Assertions.assertEquals(exception.getMessage(), "Поля available, name и description не могут быть пустыми");
     }
@@ -120,7 +120,7 @@ public class ItemServiceTest {
         Mockito.when(itemRepository.save(Mockito.any())).thenReturn(item);
 
         final UserNotFoundException exception =  Assertions.assertThrows(
-                UserNotFoundException.class, () -> service.add(itemDto, "1"));
+                UserNotFoundException.class, () -> service.add(itemDto, 1));
 
         Assertions.assertEquals(exception.getMessage(), "Пользователь с id 1 не найден");
     }
@@ -130,7 +130,7 @@ public class ItemServiceTest {
         Mockito.when(itemRepository.findById(Mockito.anyLong())).thenReturn(Optional.ofNullable(item));
         Mockito.when(itemRepository.save(Mockito.any())).thenReturn(item);
         itemDto.setAvailable(false);
-        ItemDto updatedItem = service.update(itemDto, 1L, "1");
+        ItemDto updatedItem = service.update(itemDto, 1L, 1);
 
         Assertions.assertEquals(updatedItem, itemDto);
     }
@@ -141,7 +141,7 @@ public class ItemServiceTest {
         Mockito.when(itemRepository.save(Mockito.any())).thenReturn(item);
 
         final ItemNotFoundException exception =  Assertions.assertThrows(
-                ItemNotFoundException.class, () -> service.update(itemDto, 1L, "1"));
+                ItemNotFoundException.class, () -> service.update(itemDto, 1L, 1));
 
         Assertions.assertEquals(exception.getMessage(), "Сущность с id 1 не найдена");
     }
@@ -152,7 +152,7 @@ public class ItemServiceTest {
         Mockito.when(itemRepository.save(Mockito.any())).thenReturn(item);
 
         final NoRightsException exception =  Assertions.assertThrows(
-                NoRightsException.class, () -> service.update(itemDto, 1L, "123"));
+                NoRightsException.class, () -> service.update(itemDto, 1L, 123));
 
         Assertions.assertEquals("У пользователя с id=123 нет прав для редактирования этого товара",
                 exception.getMessage());
