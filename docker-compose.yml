@@ -1,12 +1,9 @@
 version: '3.8'
 services:
   gateway:
-    build: .\gateway\
+    build: gateway/
     image: shareit-gateway
     container_name: shareit-gateway
-#    volumes:
-#      - /etc/timezone:/etc/timezone:ro
-#     - /etc/localtime:/etc/localtime:ro
     ports:
       - "8080:8080"
     depends_on:
@@ -15,12 +12,9 @@ services:
       - SHAREIT_SERVER_URL=http://server:9090
 
   server:
-    build: .\server\
+    build: server/
     image: shareit-server
     container_name: shareit-server
-#    volumes:
-#      - /etc/timezone:/etc/timezone:ro
-#      - /etc/localtime:/etc/localtime:ro
     ports:
       - "9090:9090"
     depends_on:
