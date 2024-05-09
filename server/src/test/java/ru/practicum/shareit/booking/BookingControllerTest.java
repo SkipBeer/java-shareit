@@ -40,6 +40,8 @@ public class BookingControllerTest {
     private final LocalDateTime start = LocalDateTime.now().minusSeconds(1);
     private final LocalDateTime end = LocalDateTime.now().plusSeconds(1);
 
+    private final LocalDateTime currentTime = LocalDateTime.now();
+
     @BeforeEach
     void setUp() {
         mvc = MockMvcBuilders.standaloneSetup(controller).build();
@@ -102,10 +104,10 @@ public class BookingControllerTest {
 
     @Test
     void getAllByUserId() throws Exception {
-        controller.getAllByUserId(1L, "state", 0, 20);
+        controller.getAllByUserId(1L, "state", 0, 20, currentTime);
 
         Mockito.verify(service, Mockito.times(1))
-                .getAllByState(Mockito.anyLong(), Mockito.any(), Mockito.anyInt(), Mockito.anyInt());
+                .getAllByState(Mockito.anyLong(), Mockito.any(), Mockito.anyInt(), Mockito.anyInt(), Mockito.any());
 
         mvc.perform(get("/bookings")
                         .header("X-Sharer-User-Id", 1L)
@@ -118,10 +120,10 @@ public class BookingControllerTest {
 
     @Test
     void getAllForOwner() throws Exception {
-        controller.getAllForOwner(1L, "state",0, 20);
+        controller.getAllForOwner(1L, "state",0, 20, currentTime);
 
         Mockito.verify(service, Mockito.times(1))
-                .getAllByOwnerAndState(Mockito.anyLong(), Mockito.any(), Mockito.anyInt(), Mockito.anyInt());
+                .getAllByOwnerAndState(Mockito.anyLong(), Mockito.any(), Mockito.anyInt(), Mockito.anyInt(), Mockito.any());
 
         mvc.perform(get("/bookings/owner")
                         .header("X-Sharer-User-Id", 1L)

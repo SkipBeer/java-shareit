@@ -2,10 +2,12 @@ package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingCreationDto;
 import ru.practicum.shareit.booking.dto.BookingDto;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -44,19 +46,23 @@ public class BookingController {
     public List<BookingDto> getAllByUserId(@RequestHeader("X-Sharer-User-Id") long sharerId,
                                            @RequestParam(name = "state", required = false, defaultValue = "ALL") String state,
                                            @RequestParam(name = "from", required = false) Integer from,
-                                           @RequestParam(name = "size", required = false) Integer size) {
-        log.info("Get bookings with state {}, userId={}, from={}, size={}", state, size, from, size);
-        return bookingService.getAllByState(sharerId, state, from, size);
+                                           @RequestParam(name = "size", required = false) Integer size,
+                                           @RequestParam(name = "time", required = false)
+                                               @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime time) {
+        log.info("Get bookings with state {}, userId={}, from={}, size={}, time={}", state, size, from, size, time);
+        return bookingService.getAllByState(sharerId, state, from, size, time);
     }
 
     @GetMapping("/owner")
     public List<BookingDto> getAllForOwner(@RequestHeader("X-Sharer-User-Id") Long sharerId,
                                            @RequestParam(name = "state", required = false, defaultValue = "ALL") String state,
                                            @RequestParam(name = "from", required = false) Integer from,
-                                           @RequestParam(name = "size", required = false) Integer size) {
-        log.info("Getting all bookings for owner id={} by params state={} from={} size={}",
-                sharerId, state, from, size);
-        return bookingService.getAllByOwnerAndState(sharerId, state, from, size);
+                                           @RequestParam(name = "size", required = false) Integer size,
+                                           @RequestParam(name = "time", required = false)
+                                               @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime time) {
+        log.info("Getting all bookings for owner id={} by params state={} from={} size={}, time={}",
+                sharerId, state, from, size, time);
+        return bookingService.getAllByOwnerAndState(sharerId, state, from, size, time);
     }
 
 

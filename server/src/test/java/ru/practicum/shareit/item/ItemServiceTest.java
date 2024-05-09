@@ -3,7 +3,11 @@ package ru.practicum.shareit.item;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.BookingStatus;
@@ -27,22 +31,36 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+@ExtendWith(MockitoExtension.class)
 public class ItemServiceTest {
 
-    private final ItemRepository itemRepository = Mockito.mock(ItemRepository.class);
-    private final UserRepository userRepository = Mockito.mock(UserRepository.class);
-    private final ItemRequestRepository requestRepository = Mockito.mock(ItemRequestRepository.class);
-    private final BookingRepository bookingRepository = Mockito.mock(BookingRepository.class);
-    private final CommentRepository commentRepository = Mockito.mock(CommentRepository.class);
+    @Mock
+    private ItemRepository itemRepository;
 
-    private final ItemService service = new ItemService(itemRepository, userRepository, bookingRepository,
-            commentRepository, requestRepository);
+    @Mock
+    private UserRepository userRepository;
+    @Mock
+    private ItemRequestRepository requestRepository;
+    @Mock
+    private BookingRepository bookingRepository;
+    @Mock
+    private CommentRepository commentRepository;
+
+    @InjectMocks
+    private ItemService service;
 
     private User user;
     private ItemDto itemDto;
 
     private Item item;
     private ItemRequest request;
+
+    private final LocalDateTime currentTime = LocalDateTime.now();
+
+    private final LocalDateTime lastStart = LocalDateTime.now().minusSeconds(2);
+    private final LocalDateTime lastEnd = LocalDateTime.now().minusSeconds(1);
+    private final LocalDateTime nextStart = LocalDateTime.now().plusSeconds(1);
+    private final LocalDateTime nextEnd = LocalDateTime.now().plusSeconds(2);
 
     @BeforeEach
     void setUp() {
@@ -57,7 +75,7 @@ public class ItemServiceTest {
                 null,
                 null);
         item = new Item(1L, "a", "b", true, user, null);
-        request = new ItemRequest(1L, "a", user, LocalDateTime.now());
+        request = new ItemRequest(1L, "a", user, currentTime);
     }
 
     @Test
@@ -83,8 +101,6 @@ public class ItemServiceTest {
 
     @Test
     void addNullAvailableTest() {
-        Mockito.when(userRepository.findById(Mockito.anyLong())).thenReturn(Optional.ofNullable(user));
-        Mockito.when(itemRepository.save(Mockito.any())).thenReturn(item);
         itemDto.setAvailable(null);
         final MissingRequiredFieldsException exception =  Assertions.assertThrows(
                 MissingRequiredFieldsException.class, () -> service.add(itemDto, 1));
@@ -94,8 +110,6 @@ public class ItemServiceTest {
 
     @Test
     void addNullDescriptionTest() {
-        Mockito.when(userRepository.findById(Mockito.anyLong())).thenReturn(Optional.ofNullable(user));
-        Mockito.when(itemRepository.save(Mockito.any())).thenReturn(item);
         itemDto.setDescription(null);
         final MissingRequiredFieldsException exception =  Assertions.assertThrows(
                 MissingRequiredFieldsException.class, () -> service.add(itemDto, 1));
@@ -105,8 +119,6 @@ public class ItemServiceTest {
 
     @Test
     void addEmptyNameTest() {
-        Mockito.when(userRepository.findById(Mockito.anyLong())).thenReturn(Optional.ofNullable(user));
-        Mockito.when(itemRepository.save(Mockito.any())).thenReturn(item);
         itemDto.setName("");
         final MissingRequiredFieldsException exception =  Assertions.assertThrows(
                 MissingRequiredFieldsException.class, () -> service.add(itemDto, 1));
@@ -117,7 +129,6 @@ public class ItemServiceTest {
     @Test
     void addItemWrongUserTest() {
         Mockito.when(userRepository.findById(Mockito.anyLong())).thenReturn(Optional.empty());
-        Mockito.when(itemRepository.save(Mockito.any())).thenReturn(item);
 
         final UserNotFoundException exception =  Assertions.assertThrows(
                 UserNotFoundException.class, () -> service.add(itemDto, 1));
@@ -138,7 +149,6 @@ public class ItemServiceTest {
     @Test
     void updateNotFoundItemTest() {
         Mockito.when(itemRepository.findById(Mockito.anyLong())).thenReturn(Optional.empty());
-        Mockito.when(itemRepository.save(Mockito.any())).thenReturn(item);
 
         final ItemNotFoundException exception =  Assertions.assertThrows(
                 ItemNotFoundException.class, () -> service.update(itemDto, 1L, 1));
@@ -149,7 +159,6 @@ public class ItemServiceTest {
     @Test
     void noRightsToUpdateTest() {
         Mockito.when(itemRepository.findById(Mockito.anyLong())).thenReturn(Optional.ofNullable(item));
-        Mockito.when(itemRepository.save(Mockito.any())).thenReturn(item);
 
         final NoRightsException exception =  Assertions.assertThrows(
                 NoRightsException.class, () -> service.update(itemDto, 1L, 123));
@@ -161,14 +170,14 @@ public class ItemServiceTest {
     @Test
     void getByIdTest() {
         Booking lastBooking = new Booking(1L,
-                LocalDateTime.now().minusSeconds(2),
-                LocalDateTime.now().minusSeconds(1),
+                lastStart,
+                lastEnd,
                 item,
                 user,
                 BookingStatus.APPROVED.name());
         Booking nextBooking = new Booking(1L,
-                LocalDateTime.now().plusSeconds(1),
-                LocalDateTime.now().plusSeconds(2),
+                nextStart,
+                nextEnd,
                 item,
                 user,
                 BookingStatus.APPROVED.name());
@@ -179,7 +188,7 @@ public class ItemServiceTest {
                 .thenReturn(Collections.singletonList(nextBooking));
         Mockito.when(commentRepository.getAllCommentsForItem(Mockito.anyLong())).thenReturn(new ArrayList<>());
 
-        ItemDto currentDto = service.getById(1L, 1L);
+        ItemDto currentDto = service.getById(1L, 1L, currentTime);
 
         Assertions.assertEquals(item.getId(), currentDto.getId());
 
@@ -188,10 +197,9 @@ public class ItemServiceTest {
     @Test
     void getByWrongIdTest() {
         Mockito.when(itemRepository.findById(Mockito.anyLong())).thenReturn(Optional.empty());
-        Mockito.when(commentRepository.getAllCommentsForItem(Mockito.anyLong())).thenReturn(new ArrayList<>());
 
         final ItemNotFoundException exception =  Assertions.assertThrows(
-                ItemNotFoundException.class, () -> service.getById(1L, 1L));
+                ItemNotFoundException.class, () -> service.getById(1L, 1L, currentTime));
 
         Assertions.assertEquals("Сущность с id 1 не найдена", exception.getMessage());
 
@@ -199,7 +207,7 @@ public class ItemServiceTest {
 
     @Test
     void getItemsByUserIdTest() {
-        service.getItemsByUserId(1L);
+        service.getItemsByUserId(1L, currentTime);
 
         Mockito.verify(itemRepository, Mockito.times(1)).findAllByUserId(Mockito.anyLong());
     }
@@ -213,7 +221,6 @@ public class ItemServiceTest {
 
     @Test
     void emptySearchTest() {
-        Mockito.when(itemRepository.search(Mockito.any())).thenReturn(new ArrayList<>());
 
         List<ItemDto> dtoList = service.search("");
 
@@ -222,13 +229,13 @@ public class ItemServiceTest {
 
     @Test
     void addCommentTest() {
-        Comment comment = new Comment(1L, "a", item, user, LocalDateTime.now());
+        Comment comment = new Comment(1L, "a", item, user, currentTime);
         Mockito.when(itemRepository.findById(Mockito.anyLong())).thenReturn(Optional.ofNullable(item));
         Mockito.when(userRepository.findById(Mockito.anyLong())).thenReturn(Optional.ofNullable(user));
         Mockito.when(bookingRepository.findAllBookingsForItemAndUserByEndTime(Mockito.anyLong(),
                 Mockito.anyLong(), Mockito.any())).thenReturn(Collections.singletonList(null));
         Mockito.when(commentRepository.save(Mockito.any())).thenReturn(comment);
-        CommentCreationDto commentCreationDto = new CommentCreationDto("a");
+        CommentCreationDto commentCreationDto = new CommentCreationDto("a", currentTime);
 
         CommentDto commentDto = service.addComment(commentCreationDto, 1L, 1L);
 
@@ -237,13 +244,9 @@ public class ItemServiceTest {
 
     @Test
     void addCommentEmptyTextTest() {
-        Comment comment = new Comment(1L, "a", item, user, LocalDateTime.now());
         Mockito.when(itemRepository.findById(Mockito.anyLong())).thenReturn(Optional.ofNullable(item));
         Mockito.when(userRepository.findById(Mockito.anyLong())).thenReturn(Optional.ofNullable(user));
-        Mockito.when(bookingRepository.findAllBookingsForItemAndUserByEndTime(Mockito.anyLong(),
-                Mockito.anyLong(), Mockito.any())).thenReturn(Collections.singletonList(null));
-        Mockito.when(commentRepository.save(Mockito.any())).thenReturn(comment);
-        CommentCreationDto commentCreationDto = new CommentCreationDto("");
+        CommentCreationDto commentCreationDto = new CommentCreationDto("", currentTime);
 
         final MissingRequiredFieldsException exception =  Assertions.assertThrows(
                 MissingRequiredFieldsException.class, () -> service.addComment(commentCreationDto, 1L, 1L));
@@ -253,13 +256,11 @@ public class ItemServiceTest {
 
     @Test
     void addCommentNoRightsTest() {
-        Comment comment = new Comment(1L, "a", item, user, LocalDateTime.now());
         Mockito.when(itemRepository.findById(Mockito.anyLong())).thenReturn(Optional.ofNullable(item));
         Mockito.when(userRepository.findById(Mockito.anyLong())).thenReturn(Optional.ofNullable(user));
         Mockito.when(bookingRepository.findAllBookingsForItemAndUserByEndTime(Mockito.anyLong(),
                 Mockito.anyLong(), Mockito.any())).thenReturn(new ArrayList<>());
-        Mockito.when(commentRepository.save(Mockito.any())).thenReturn(comment);
-        CommentCreationDto commentCreationDto = new CommentCreationDto("a");
+        CommentCreationDto commentCreationDto = new CommentCreationDto("a", currentTime);
 
         final PostCommentException exception =  Assertions.assertThrows(
                 PostCommentException.class, () -> service.addComment(commentCreationDto, 1L, 1L));
@@ -269,13 +270,8 @@ public class ItemServiceTest {
 
     @Test
     void addCommentWrongItemTest() {
-        Comment comment = new Comment(1L, "a", item, user, LocalDateTime.now());
         Mockito.when(itemRepository.findById(Mockito.anyLong())).thenReturn(Optional.empty());
-        Mockito.when(userRepository.findById(Mockito.anyLong())).thenReturn(Optional.ofNullable(user));
-        Mockito.when(bookingRepository.findAllBookingsForItemAndUserByEndTime(Mockito.anyLong(),
-                Mockito.anyLong(), Mockito.any())).thenReturn(new ArrayList<>());
-        Mockito.when(commentRepository.save(Mockito.any())).thenReturn(comment);
-        CommentCreationDto commentCreationDto = new CommentCreationDto("a");
+        CommentCreationDto commentCreationDto = new CommentCreationDto("a", currentTime);
 
         final ItemNotFoundException exception =  Assertions.assertThrows(
                 ItemNotFoundException.class, () -> service.addComment(commentCreationDto, 1L, 1L));
@@ -285,13 +281,9 @@ public class ItemServiceTest {
 
     @Test
     void addCommentWrongUserTest() {
-        Comment comment = new Comment(1L, "a", item, user, LocalDateTime.now());
         Mockito.when(itemRepository.findById(Mockito.anyLong())).thenReturn(Optional.ofNullable(item));
         Mockito.when(userRepository.findById(Mockito.anyLong())).thenReturn(Optional.empty());
-        Mockito.when(bookingRepository.findAllBookingsForItemAndUserByEndTime(Mockito.anyLong(),
-                Mockito.anyLong(), Mockito.any())).thenReturn(new ArrayList<>());
-        Mockito.when(commentRepository.save(Mockito.any())).thenReturn(comment);
-        CommentCreationDto commentCreationDto = new CommentCreationDto("a");
+        CommentCreationDto commentCreationDto = new CommentCreationDto("a", currentTime);
 
         final UserNotFoundException exception =  Assertions.assertThrows(
                 UserNotFoundException.class, () -> service.addComment(commentCreationDto, 1L, 1L));

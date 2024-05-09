@@ -70,7 +70,7 @@ public class BookingService {
         return BookingMapper.toBookingDto(booking);
     }
 
-    public List<BookingDto> getAllByState(Long sharerId, String state, Integer from, Integer size) {
+    public List<BookingDto> getAllByState(Long sharerId, String state, Integer from, Integer size, LocalDateTime time) {
         userRepository.findById(sharerId).orElseThrow(()
                 -> {
             throw new UserNotFoundException("Пользователь с id " + sharerId + " не найден"); });
@@ -83,13 +83,13 @@ public class BookingService {
                 return bookingRepository.findAllOrderByEnd(sharerId, createPage(from, size)).stream()
                         .map(BookingMapper::toBookingDto).collect(Collectors.toList());
             case PAST:
-                return bookingRepository.findAllByEndIsBefore(LocalDateTime.now(),createPage(from, size))
+                return bookingRepository.findAllByEndIsBefore(time,createPage(from, size))
                         .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
             case CURRENT:
-                return bookingRepository.findAllByEndIsAfterAndStartIsBefore(LocalDateTime.now(), LocalDateTime.now(),createPage(from, size))
+                return bookingRepository.findAllByEndIsAfterAndStartIsBefore(time, time,createPage(from, size))
                         .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
             case FUTURE:
-                return bookingRepository.findAllByStartIsAfter(LocalDateTime.now(),createPage(from, size))
+                return bookingRepository.findAllByStartIsAfter(time,createPage(from, size))
                         .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
             case REJECTED:
             case WAITING:
@@ -100,7 +100,7 @@ public class BookingService {
         }
     }
 
-    public List<BookingDto> getAllByOwnerAndState(Long sharerId, String state, Integer from, Integer size) {
+    public List<BookingDto> getAllByOwnerAndState(Long sharerId, String state, Integer from, Integer size, LocalDateTime time) {
         if (Arrays.stream(BookingState.values()).noneMatch(existsState -> existsState.name().equals(state.toUpperCase()))) {
             throw new UnsupportedStatusException("Unknown state: " + state.toUpperCase());
 
@@ -114,13 +114,13 @@ public class BookingService {
                 return bookingRepository.findAllByOwner(sharerId, createPage(from, size)).stream()
                         .map(BookingMapper::toBookingDto).collect(Collectors.toList());
             case CURRENT:
-                return bookingRepository.findAllByCurrentStateFowOwner(LocalDateTime.now(), sharerId, createPage(from, size))
+                return bookingRepository.findAllByCurrentStateFowOwner(time, sharerId, createPage(from, size))
                         .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
             case FUTURE:
-                return bookingRepository.findAllByStartIsAfter(LocalDateTime.now(), createPage(from, size))
+                return bookingRepository.findAllByStartIsAfter(time, createPage(from, size))
                         .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
             case PAST:
-                return bookingRepository.findAllByEndIsBefore(LocalDateTime.now(), createPage(from, size))
+                return bookingRepository.findAllByEndIsBefore(time, createPage(from, size))
                         .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
             case WAITING:
             case REJECTED:

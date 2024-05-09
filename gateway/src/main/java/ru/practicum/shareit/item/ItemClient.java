@@ -11,6 +11,7 @@ import ru.practicum.shareit.client.BaseClient;
 import ru.practicum.shareit.item.dto.CommentCreationDto;
 import ru.practicum.shareit.item.dto.ItemCreationDto;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 
 @Service
@@ -37,11 +38,15 @@ public class ItemClient extends BaseClient {
     }
 
     public ResponseEntity<Object> getItem(long itemId, long userId) {
-        return get("/" + itemId, userId);
+        LocalDateTime time = LocalDateTime.now();
+        Map<String, Object> params = Map.of("time", time);
+        return get("/" + itemId + "?time={time}", userId, params);
     }
 
     public ResponseEntity<Object> getItemsByUserId(long userId) {
-        return get("", userId);
+        LocalDateTime time = LocalDateTime.now();
+        Map<String, Object> params = Map.of("time", time);
+        return get("?time={time}", userId, params);
     }
 
     public ResponseEntity<Object> search(long userId, String text) {

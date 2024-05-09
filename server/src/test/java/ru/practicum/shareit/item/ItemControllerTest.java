@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,6 +42,8 @@ public class ItemControllerTest {
     private MockMvc mvc;
 
     private final ObjectMapper mapper = new ObjectMapper();
+
+    private final LocalDateTime currentTime = LocalDateTime.now();
 
 
     @BeforeEach
@@ -97,9 +100,9 @@ public class ItemControllerTest {
 
     @Test
     void getItemByIdTest() throws Exception {
-        Mockito.when(service.getById(Mockito.anyLong(), Mockito.anyLong())).thenReturn(dto);
+        Mockito.when(service.getById(Mockito.anyLong(), Mockito.anyLong(), Mockito.any())).thenReturn(dto);
 
-        ItemDto existsItem = controller.getItemById(1L, 1L);
+        ItemDto existsItem = controller.getItemById(1L, 1L, currentTime);
 
         mvc.perform(get("/items/{itemId}", 1L)
                         .header("X-Sharer-User-Id", 1L)
@@ -119,9 +122,9 @@ public class ItemControllerTest {
         List<ItemDto> dtoList = new ArrayList<>();
         dtoList.add(dto);
 
-        Mockito.when(service.getItemsByUserId(Mockito.anyLong())).thenReturn(dtoList);
+        Mockito.when(service.getItemsByUserId(Mockito.anyLong(), Mockito.any())).thenReturn(dtoList);
 
-        List<ItemDto> newDtoList = controller.getAllUsersItems(1L, null, null);
+        List<ItemDto> newDtoList = controller.getAllUsersItems(1L, null, null, currentTime);
 
         mvc.perform(get("/items/search")
                         .header("X-Sharer-User-Id", 1L)
@@ -157,13 +160,13 @@ public class ItemControllerTest {
 
     @Test
     void addCommentTest() throws Exception {
-        CommentCreationDto creationDto = new CommentCreationDto("text");
+        CommentCreationDto creationDto = new CommentCreationDto("text", currentTime);
         CommentDto commentDto = new CommentDto(1L, creationDto.getText(), "b", LocalDateTime.now());
 
         Mockito.when(service.addComment(Mockito.any(), Mockito.anyLong(), Mockito.anyLong())).thenReturn(commentDto);
 
         CommentDto newDto = controller.addComment(creationDto, 1L, 1L);
-
+        mapper.registerModule(new JavaTimeModule());
         mvc.perform(post("/items/{itemId}/comment", 1L)
                         .header("X-Sharer-User-Id", 1L)
                         .content(mapper.writeValueAsString(creationDto))

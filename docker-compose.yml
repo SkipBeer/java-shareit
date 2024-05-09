@@ -4,6 +4,9 @@ services:
     build: C:\Users\MrDic\dev\java-shareit\gateway\
     image: shareit-gateway
     container_name: shareit-gateway
+#    volumes:
+#      - /etc/timezone:/etc/timezone:ro
+#     - /etc/localtime:/etc/localtime:ro
     ports:
       - "8080:8080"
     depends_on:
@@ -15,6 +18,9 @@ services:
     build: C:\Users\MrDic\dev\java-shareit\server\
     image: shareit-server
     container_name: shareit-server
+#    volumes:
+#      - /etc/timezone:/etc/timezone:ro
+#      - /etc/localtime:/etc/localtime:ro
     ports:
       - "9090:9090"
     depends_on:

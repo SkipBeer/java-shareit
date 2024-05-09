@@ -11,6 +11,7 @@ import ru.practicum.shareit.booking.dto.BookItemRequestDto;
 import ru.practicum.shareit.booking.dto.BookingState;
 import ru.practicum.shareit.client.BaseClient;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 
 @Service
@@ -28,12 +29,14 @@ public class BookingClient extends BaseClient {
     }
 
     public ResponseEntity<Object> getBookings(long userId, BookingState state, Integer from, Integer size) {
+        LocalDateTime time = LocalDateTime.now();
         Map<String, Object> parameters = Map.of(
                 "state", state.name(),
                 "from", from,
-                "size", size
+                "size", size,
+                "time", time
         );
-        return get("?state={state}&from={from}&size={size}", userId, parameters);
+        return get("?state={state}&from={from}&size={size}&time={time}", userId, parameters);
     }
 
 
@@ -51,11 +54,13 @@ public class BookingClient extends BaseClient {
     }
 
     public ResponseEntity<Object> getAllByOwner(long userId, BookingState state, Integer from, Integer size) {
+        LocalDateTime time = LocalDateTime.now();
         Map<String, Object> parameters = Map.of(
                 "state", state.name(),
                 "from", from,
-                "size", size
+                "size", size,
+                "time", time
         );
-        return get("/owner?state={state}&from={from}&size={size}", userId, parameters);
+        return get("/owner?state={state}&from={from}&size={size}&time={time}", userId, parameters);
     }
 }

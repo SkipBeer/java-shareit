@@ -60,23 +60,23 @@ public class ItemService {
         return ItemMapper.toItemDto(itemRepository.save(existsItem));
     }
 
-    public ItemDto getById(Long itemId, Long sharerId) {
+    public ItemDto getById(Long itemId, Long sharerId, LocalDateTime time) {
         ItemDto itemDto = ItemMapper.toItemDto(itemRepository.findById(itemId)
                 .orElseThrow(() -> {
                     throw new ItemNotFoundException("Сущность с id " + itemId + " не найдена"); }));
         if (itemDto.getOwner().equals(sharerId)) {
-            setBookingsForItem(itemDto);
+            setBookingsForItem(itemDto, time);
         }
         itemDto.setComments(commentRepository.getAllCommentsForItem(itemId).stream()
                 .map(CommentMapper::toCommentDto).collect(Collectors.toList()));
         return itemDto;
     }
 
-    public List<ItemDto> getItemsByUserId(Long sharerId) {
+    public List<ItemDto> getItemsByUserId(Long sharerId, LocalDateTime time) {
         return itemRepository.findAllByUserId(sharerId)
                 .stream()
                 .map(ItemMapper::toItemDto)
-                .peek(this::setBookingsForItem)
+                .peek(itemDto -> setBookingsForItem(itemDto, time))
                 .sorted(Comparator.comparing(ItemDto::getId))
                 .collect(Collectors.toList());
     }
@@ -133,10 +133,10 @@ public class ItemService {
         }
     }
 
-    private void setBookingsForItem(ItemDto itemDto) {
+    private void setBookingsForItem(ItemDto itemDto, LocalDateTime time) {
 
         Optional<Booking> optLastBooking = bookingRepository
-                .findLastBookingForItem(LocalDateTime.now(), itemDto.getId()).stream()
+                .findLastBookingForItem(time, itemDto.getId()).stream()
                 .findFirst();
         if (optLastBooking.isPresent()) {
             itemDto.setLastBooking(BookingMapper.toBookingItemDto(optLastBooking.get()));
@@ -145,7 +145,7 @@ public class ItemService {
         }
 
         Optional<Booking> optNextBooking = bookingRepository
-                .findNextBookingForItem(LocalDateTime.now(), itemDto.getId()).stream()
+                .findNextBookingForItem(time, itemDto.getId()).stream()
                 .filter(booking -> !booking.getStatus().equals(BookingStatus.REJECTED.name()))
                 .findFirst();
         if (optNextBooking.isPresent()) {

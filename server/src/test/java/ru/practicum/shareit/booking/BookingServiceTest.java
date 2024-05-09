@@ -25,6 +25,8 @@ public class BookingServiceTest {
     private final LocalDateTime start = LocalDateTime.now().plusSeconds(1);
     private final LocalDateTime end = LocalDateTime.now().plusSeconds(2);
 
+    private final LocalDateTime currenttime = LocalDateTime.now();
+
     private final BookingService service = new BookingService(bookingRepository, itemRepository, userRepository);
     private User user = new User(1L, "a", "b@ya.ru");
     private Item item = new Item(1L, "a","b", true, user, null);
@@ -176,7 +178,7 @@ public class BookingServiceTest {
         Mockito.when(bookingRepository.findAllOrderByEnd(Mockito.anyLong(), Mockito.any()))
                 .thenReturn(new ArrayList<>());
 
-        List<BookingDto> bookingDtos = service.getAllByState(1L, "ALL", 0, 20);
+        List<BookingDto> bookingDtos = service.getAllByState(1L, "ALL", 0, 20, currenttime);
 
         Assertions.assertEquals(bookingDtos, new ArrayList<>());
     }
@@ -187,7 +189,7 @@ public class BookingServiceTest {
         Mockito.when(bookingRepository.findAllByEndIsBefore(Mockito.any(), Mockito.any()))
                 .thenReturn(new ArrayList<>());
 
-        List<BookingDto> bookingDtos = service.getAllByState(1L, "PAST", 0, 20);
+        List<BookingDto> bookingDtos = service.getAllByState(1L, "PAST", 0, 20, currenttime);
 
         Assertions.assertEquals(bookingDtos, new ArrayList<>());
     }
@@ -198,7 +200,7 @@ public class BookingServiceTest {
         Mockito.when(bookingRepository.findAllByEndIsAfterAndStartIsBefore(Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenReturn(new ArrayList<>());
 
-        List<BookingDto> bookingDtos = service.getAllByState(1L, "CURRENT", 0, 20);
+        List<BookingDto> bookingDtos = service.getAllByState(1L, "CURRENT", 0, 20, currenttime);
 
         Assertions.assertEquals(bookingDtos, new ArrayList<>());
     }
@@ -209,7 +211,7 @@ public class BookingServiceTest {
         Mockito.when(bookingRepository.findAllByStartIsAfter(Mockito.any(), Mockito.any()))
                 .thenReturn(new ArrayList<>());
 
-        List<BookingDto> bookingDtos = service.getAllByState(1L, "FUTURE", 0, 20);
+        List<BookingDto> bookingDtos = service.getAllByState(1L, "FUTURE", 0, 20, currenttime);
 
         Assertions.assertEquals(bookingDtos, new ArrayList<>());
     }
@@ -220,7 +222,7 @@ public class BookingServiceTest {
         Mockito.when(bookingRepository.findAllByStatus(Mockito.any(), Mockito.anyLong(), Mockito.any()))
                 .thenReturn(new ArrayList<>());
 
-        List<BookingDto> bookingDtos = service.getAllByState(1L, "REJECTED", null, null);
+        List<BookingDto> bookingDtos = service.getAllByState(1L, "REJECTED", null, null, currenttime);
 
         Assertions.assertEquals(bookingDtos, new ArrayList<>());
     }
@@ -232,7 +234,7 @@ public class BookingServiceTest {
                 .thenReturn(new ArrayList<>());
 
         final UserNotFoundException exception = Assertions.assertThrows(
-                UserNotFoundException.class, () -> service.getAllByState(1L, "REJECTED", 0, 2));
+                UserNotFoundException.class, () -> service.getAllByState(1L, "REJECTED", 0, 2, currenttime));
 
         Assertions.assertEquals("Пользователь с id 1 не найден", exception.getMessage());
     }
@@ -245,7 +247,7 @@ public class BookingServiceTest {
 
         final UnsupportedStatusException exception = Assertions.assertThrows(
                 UnsupportedStatusException.class, () ->
-                        service.getAllByState(1L, "UNSUPPORTED", 0, 2));
+                        service.getAllByState(1L, "UNSUPPORTED", 0, 2, currenttime));
 
         Assertions.assertEquals("Unknown state: UNSUPPORTED", exception.getMessage());
     }
@@ -258,7 +260,7 @@ public class BookingServiceTest {
 
         final UnsupportedStatusException exception = Assertions.assertThrows(
                 UnsupportedStatusException.class, () ->
-                        service.getAllByOwnerAndState(1L, "UNSUPPORTED", 0, 2));
+                        service.getAllByOwnerAndState(1L, "UNSUPPORTED", 0, 2, currenttime));
 
         Assertions.assertEquals("Unknown state: UNSUPPORTED", exception.getMessage());
     }
@@ -271,7 +273,7 @@ public class BookingServiceTest {
 
         final UserNotFoundException exception = Assertions.assertThrows(
                 UserNotFoundException.class, () ->
-                        service.getAllByOwnerAndState(1L, "REJECTED", 0, 2));
+                        service.getAllByOwnerAndState(1L, "REJECTED", 0, 2, currenttime));
 
         Assertions.assertEquals("Пользователь с id 1 не найден", exception.getMessage());
     }
@@ -282,7 +284,7 @@ public class BookingServiceTest {
         Mockito.when(bookingRepository.findAllByOwner(Mockito.anyLong(), Mockito.any()))
                 .thenReturn(new ArrayList<>());
 
-        List<BookingDto> bookingDtos = service.getAllByOwnerAndState(1L, "ALL", 0, 20);
+        List<BookingDto> bookingDtos = service.getAllByOwnerAndState(1L, "ALL", 0, 20, currenttime);
 
         Assertions.assertEquals(bookingDtos, new ArrayList<>());
     }
@@ -293,7 +295,7 @@ public class BookingServiceTest {
         Mockito.when(bookingRepository.findAllByCurrentStateFowOwner(Mockito.any(), Mockito.anyLong(), Mockito.any()))
                 .thenReturn(new ArrayList<>());
 
-        List<BookingDto> bookingDtos = service.getAllByOwnerAndState(1L, "Current", 0, 20);
+        List<BookingDto> bookingDtos = service.getAllByOwnerAndState(1L, "Current", 0, 20, currenttime);
 
         Assertions.assertEquals(bookingDtos, new ArrayList<>());
     }
@@ -304,7 +306,7 @@ public class BookingServiceTest {
         Mockito.when(bookingRepository.findAllByStartIsAfter(Mockito.any(), Mockito.any()))
                 .thenReturn(new ArrayList<>());
 
-        List<BookingDto> bookingDtos = service.getAllByOwnerAndState(1L, "FUTURE", 0, 20);
+        List<BookingDto> bookingDtos = service.getAllByOwnerAndState(1L, "FUTURE", 0, 20, currenttime);
 
         Assertions.assertEquals(bookingDtos, new ArrayList<>());
     }
@@ -315,7 +317,7 @@ public class BookingServiceTest {
         Mockito.when(bookingRepository.findAllByEndIsBefore(Mockito.any(), Mockito.any()))
                 .thenReturn(new ArrayList<>());
 
-        List<BookingDto> bookingDtos = service.getAllByOwnerAndState(1L, "PAST", 0, 20);
+        List<BookingDto> bookingDtos = service.getAllByOwnerAndState(1L, "PAST", 0, 20, currenttime);
 
         Assertions.assertEquals(bookingDtos, new ArrayList<>());
     }
@@ -326,7 +328,7 @@ public class BookingServiceTest {
         Mockito.when(bookingRepository.findAllForOwnerByStatus(Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenReturn(new ArrayList<>());
 
-        List<BookingDto> bookingDtos = service.getAllByOwnerAndState(1L, "REJECTED", 0, 20);
+        List<BookingDto> bookingDtos = service.getAllByOwnerAndState(1L, "REJECTED", 0, 20, currenttime);
 
         Assertions.assertEquals(bookingDtos, new ArrayList<>());
     }
