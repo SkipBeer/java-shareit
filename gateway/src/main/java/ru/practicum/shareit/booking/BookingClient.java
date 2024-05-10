@@ -71,10 +71,20 @@ public class BookingClient extends BaseClient {
             throw new IncorrectBookingTimeException("Необходимо указать время бронирования");
         }
 
-        if (booking.getStart().equals(booking.getEnd()) || booking.getEnd().isBefore(booking.getStart())
-                || booking.getStart().isAfter(booking.getEnd()) || booking.getEnd().isBefore(LocalDateTime.now())
-                || booking.getStart().isBefore(LocalDateTime.now())) {
+        if (booking.getStart().equals(booking.getEnd())) {
+            throw new IncorrectBookingTimeException("Начало и конец бронирования не могут совпадать");
+        }
+
+        if (booking.getEnd().isBefore(LocalDateTime.now()) || booking.getStart().isBefore(LocalDateTime.now())) {
             throw new IncorrectBookingTimeException("Некорректно указано время бронирования");
+        }
+
+        if (booking.getEnd().isBefore(booking.getStart())) {
+            throw new IncorrectBookingTimeException("Конец бронирования не может быть раньше начала");
+        }
+
+        if (booking.getStart().isAfter(booking.getEnd())) {
+            throw new IncorrectBookingTimeException("Начало бронирования не может быть позже конца");
         }
     }
 }
