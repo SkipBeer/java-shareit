@@ -78,31 +78,31 @@ public class BookingServiceTest {
         Assertions.assertEquals(exception.getMessage(), "Предмет с id 1 не найден");
     }
 
-    @Test
-    void addBookingWithoutTimeTest() {
-        Mockito.when(userRepository.findById(Mockito.anyLong())).thenReturn(Optional.ofNullable(user));
-        Mockito.when(itemRepository.findById(Mockito.anyLong())).thenReturn(Optional.ofNullable(item));
-        Mockito.when(bookingRepository.save(Mockito.any())).thenReturn(booking);
-        bookingCreationDto.setEnd(null);
-        bookingCreationDto.setStart(null);
-        final IncorrectBookingTimeException exception =  Assertions.assertThrows(
-                IncorrectBookingTimeException.class, () -> service.add(bookingCreationDto, 2L));
+//    @Test
+//    void addBookingWithoutTimeTest() {
+//        Mockito.when(userRepository.findById(Mockito.anyLong())).thenReturn(Optional.ofNullable(user));
+//        Mockito.when(itemRepository.findById(Mockito.anyLong())).thenReturn(Optional.ofNullable(item));
+//        Mockito.when(bookingRepository.save(Mockito.any())).thenReturn(booking);
+//        bookingCreationDto.setEnd(null);
+//        bookingCreationDto.setStart(null);
+//        final IncorrectBookingTimeException exception =  Assertions.assertThrows(
+//                IncorrectBookingTimeException.class, () -> service.add(bookingCreationDto, 2L));
+//
+//        Assertions.assertEquals("Необходимо указать время бронирования", exception.getMessage());
+//    }
 
-        Assertions.assertEquals("Необходимо указать время бронирования", exception.getMessage());
-    }
-
-    @Test
-    void addBookingEndEqualsStartTest() {
-        Mockito.when(userRepository.findById(Mockito.anyLong())).thenReturn(Optional.ofNullable(user));
-        Mockito.when(itemRepository.findById(Mockito.anyLong())).thenReturn(Optional.ofNullable(item));
-        Mockito.when(bookingRepository.save(Mockito.any())).thenReturn(booking);
-        bookingCreationDto.setEnd(LocalDateTime.now());
-        bookingCreationDto.setStart(LocalDateTime.now());
-        final IncorrectBookingTimeException exception =  Assertions.assertThrows(
-                IncorrectBookingTimeException.class, () -> service.add(bookingCreationDto, 2L));
-
-        Assertions.assertEquals("Некорректно указано время бронирования", exception.getMessage());
-    }
+//    @Test
+//    void addBookingEndEqualsStartTest() {
+//        Mockito.when(userRepository.findById(Mockito.anyLong())).thenReturn(Optional.ofNullable(user));
+//        Mockito.when(itemRepository.findById(Mockito.anyLong())).thenReturn(Optional.ofNullable(item));
+//        Mockito.when(bookingRepository.save(Mockito.any())).thenReturn(booking);
+//        bookingCreationDto.setEnd(LocalDateTime.now());
+//        bookingCreationDto.setStart(LocalDateTime.now());
+//        final IncorrectBookingTimeException exception =  Assertions.assertThrows(
+//                IncorrectBookingTimeException.class, () -> service.add(bookingCreationDto, 2L));
+//
+//        Assertions.assertEquals("Некорректно указано время бронирования", exception.getMessage());
+//    }
 
     @Test
     void addBookingNotAvailableItemTest() {

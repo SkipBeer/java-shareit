@@ -133,16 +133,6 @@ public class BookingService {
 
     private void validate(Booking booking, Long userId) {
 
-        if (booking.getEnd() == null || booking.getStart() == null) {
-            throw new IncorrectBookingTimeException("Необходимо указать время бронирования");
-        }
-
-        if (booking.getStart().equals(booking.getEnd()) || booking.getEnd().isBefore(booking.getStart())
-                || booking.getStart().isAfter(booking.getEnd()) || booking.getEnd().isBefore(LocalDateTime.now())
-                || booking.getStart().isBefore(LocalDateTime.now())) {
-            throw new IncorrectBookingTimeException("Некорректно указано время бронирования");
-        }
-
         if (!booking.getItem().getAvailable()) {
             throw new UnavailableItemException("Предмет недоступен для бронирования");
         }

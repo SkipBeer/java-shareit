@@ -10,6 +10,7 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.practicum.shareit.booking.dto.BookItemRequestDto;
 import ru.practicum.shareit.booking.dto.BookingState;
 import ru.practicum.shareit.client.BaseClient;
+import ru.practicum.shareit.exceptions.exceptions.IncorrectBookingTimeException;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -41,6 +42,7 @@ public class BookingClient extends BaseClient {
 
 
     public ResponseEntity<Object> bookItem(long userId, BookItemRequestDto requestDto) {
+        validate(requestDto);
         return post("", userId, requestDto);
     }
 
@@ -62,5 +64,17 @@ public class BookingClient extends BaseClient {
                 "time", time
         );
         return get("/owner?state={state}&from={from}&size={size}&time={time}", userId, parameters);
+    }
+
+    private void validate(BookItemRequestDto booking) {
+        if (booking.getEnd() == null || booking.getStart() == null) {
+            throw new IncorrectBookingTimeException("Необходимо указать время бронирования");
+        }
+
+        if (booking.getStart().equals(booking.getEnd()) || booking.getEnd().isBefore(booking.getStart())
+                || booking.getStart().isAfter(booking.getEnd()) || booking.getEnd().isBefore(LocalDateTime.now())
+                || booking.getStart().isBefore(LocalDateTime.now())) {
+            throw new IncorrectBookingTimeException("Некорректно указано время бронирования");
+        }
     }
 }
