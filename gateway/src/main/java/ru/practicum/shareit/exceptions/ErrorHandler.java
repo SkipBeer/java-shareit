@@ -11,14 +11,6 @@ import ru.practicum.shareit.exceptions.exceptions.IncorrectRequestParamException
 @RestControllerAdvice
 public class ErrorHandler {
 
-//    @ExceptionHandler()
-//    @ResponseStatus(HttpStatus.NOT_FOUND)
-//    public ErrorResponse handleNotFoundException(final RuntimeException e) {
-//        return new ErrorResponse(
-//                e.getMessage()
-//        );
-//    }
-
     @ExceptionHandler({IncorrectRequestParamException.class, IncorrectBookingTimeException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleBadRequestException(final RuntimeException e) {
@@ -26,14 +18,4 @@ public class ErrorHandler {
                 e.getMessage()
         );
     }
-
-//    @ExceptionHandler()
-//    @ResponseStatus(HttpStatus.CONFLICT)
-//    public ErrorResponse handleConflictException(final RuntimeException e) {
-//        return new ErrorResponse(
-//                e.getMessage()
-//        );
-//    }
-
-
 }
